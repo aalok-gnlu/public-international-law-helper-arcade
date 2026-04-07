@@ -1,0 +1,2432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GNLU Law Game - iOS Edition</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+
+    <!-- Ambient Background -->
+    <div
+        class="fixed top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-[-1]">
+    </div>
+    <div
+        class="fixed bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none z-[-1]">
+    </div>
+
+    <!-- Mock Phone Device -->
+    <div id="phone-container"
+        class="relative w-[370px] h-[780px] bg-[#0c0c0c] rounded-[4rem] p-3.5 shadow-[0_0_80px_rgba(0,0,0,0.8),0_0_40px_rgba(59,130,246,0.1)] border-[2px] border-[#2a2a2a] flex-shrink-0 z-10">
+
+        <!-- Hardware Buttons -->
+        <div class="absolute right-[-3px] top-36 w-1 h-16 bg-[#222] rounded-r-md border-r border-[#444] shadow-md">
+        </div>
+        <div class="absolute left-[-3px] top-28 w-1 h-12 bg-[#222] rounded-l-md border-l border-[#444] shadow-md"></div>
+        <div class="absolute left-[-3px] top-44 w-1 h-12 bg-[#222] rounded-l-md border-l border-[#444] shadow-md"></div>
+
+        <!-- Inner Screen -->
+        <div id="phone-screen"
+            class="relative w-full h-full bg-black rounded-[3.2rem] overflow-hidden shadow-inner border border-white/5 pointer-events-auto"
+            style="transform: translate3d(0,0,0); -webkit-mask-image: -webkit-radial-gradient(white, black); mask-image: radial-gradient(white, black);">
+
+            <div class="absolute inset-0 phone-glare z-[100]"></div>
+
+            <!-- Fixed Hardware Camera Hole -->
+            <div class="absolute top-[11px] w-full flex justify-center z-[120] pointer-events-none">
+                <div class="w-[125px] h-[37px] relative">
+                    <div
+                        class="absolute top-[12px] right-[16px] w-[13px] h-[13px] rounded-full bg-[#050505] border-[1px] border-[#111] flex items-center justify-center shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]">
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-900/30"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Island Backdrop Overlay (Dims UI when Island is large) -->
+            <div id="island-backdrop"
+                class="absolute inset-0 bg-black/60 backdrop-blur-sm z-[105] opacity-0 pointer-events-none transition-opacity duration-300">
+            </div>
+
+            <!-- Dynamic Island Container -->
+            <div class="absolute top-[11px] w-full flex justify-center z-[110] pointer-events-none">
+                <!-- Island Base (Starts Idle) -->
+                <div id="dynamic-island"
+                    class="bg-black flex items-start justify-center overflow-hidden relative pointer-events-auto"
+                    style="width: 125px; height: 37px; border-radius: 18.5px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.05);">
+
+                    <!-- Base 1: Small Non-Interactive (Alerts, basic status) -->
+                    <div id="island-base-small"
+                        class="island-content-fade flex flex-col items-center pt-[44px] px-6 w-full absolute inset-0">
+                        <div id="island-content-small" class="flex items-center justify-between w-full text-white">
+                            <!-- Injected content -->
+                        </div>
+                    </div>
+
+                    <!-- Base 2: Large Interactive (Siri, Apps, Portals) -->
+                    <div id="island-base-large"
+                        class="island-content-fade flex flex-col items-center pt-8 pb-6 px-6 w-full absolute inset-0">
+                        <div id="island-content-large" class="w-full flex-1 flex flex-col items-center">
+                            <!-- Injected content -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Status Bar perfectly aligned to Island -->
+            <div id="status-bar"
+                class="absolute top-[11px] w-full h-[37px] flex justify-between items-center px-7 text-[14px] font-semibold z-[70] transition-opacity duration-300 pointer-events-none drop-shadow-sm text-white">
+                <span id="clock" class="tracking-wider">09:41 AM</span>
+                <div class="flex items-center space-x-2">
+                    <svg id="wifi-icon" class="w-[16px] h-[16px]" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C7.95 2 4.21 3.34 1.2 5.53l10.8 13.92 10.8-13.92C19.79 3.34 16.05 2 12 2z" />
+                    </svg>
+                    <svg id="no-wifi-icon" class="w-[16px] h-[16px] text-red-500 hidden animate-pulse"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="2" y1="2" x2="22" y2="22"></line>
+                        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                    <svg id="airplane-mode-icon" class="w-[16px] h-[16px] text-white hidden" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+                    </svg>
+                    <svg class="w-[24px] h-[24px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="6" width="18" height="12" rx="3" ry="3"></rect>
+                        <line x1="23" y1="13" x2="23" y2="11"></line>
+                        <rect x="3" y="8" width="14" height="8" fill="currentColor"></rect>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Screens Container -->
+            <!-- APP: Chat -->
+            <div id="screen-chat" class="app-screen absolute inset-0 bg-[#F2F2F7] overflow-hidden">
+                <!-- WhatsApp Home View -->
+                <div id="wa-home"
+                    class="absolute inset-0 flex flex-col z-20 bg-[#F2F2F7] transition-transform duration-300">
+                    <!-- iOS Top Nav -->
+                    <div
+                        class="px-4 pb-2 pt-[3.75rem] flex items-center justify-between bg-[#F2F2F7] z-10 sticky top-0">
+                        <button class="text-[#007AFF] text-[17px]">Edit</button>
+                        <div class="flex gap-5">
+                            <svg class="w-6 h-6 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                                </path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                            <svg class="w-6 h-6 text-[#007AFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Large Title & Search -->
+                    <div class="bg-[#F2F2F7] px-4 pt-1 pb-2 z-10">
+                        <h1 class="text-[34px] font-bold text-black tracking-tight mb-2">Chats</h1>
+                        <div class="bg-[#767680]/10 rounded-[10px] flex items-center px-2 py-1.5 mt-2">
+                            <svg class="w-5 h-5 text-[#3C3C43]/60 mr-1.5 ml-1" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <span class="text-[17px] text-[#3C3C43]/60">Search</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white flex items-center justify-between px-4 py-2 border-b border-[#3C3C43]/20 mt-2">
+                        <span class="text-[#007AFF] text-[16px] font-medium">Broadcast Lists</span>
+                        <span class="text-[#007AFF] text-[16px] font-medium">New Group</span>
+                    </div>
+
+                    <!-- Contact List -->
+                    <div id="wa-contacts-list" class="flex-1 overflow-y-auto pb-[85px] bg-white">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Bottom Tab Bar -->
+                    <div
+                        class="absolute bottom-0 w-full bg-[#F6F6F6]/90 backdrop-blur-md border-t border-[#3C3C43]/20 flex justify-between px-6 pt-2 pb-6 z-30">
+                        <div class="flex flex-col items-center gap-1 text-[#8E8E93]">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <span class="text-[10px] font-medium">Updates</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 text-[#8E8E93]">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                </path>
+                            </svg>
+                            <span class="text-[10px] font-medium">Calls</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 text-[#8E8E93]">
+                            <svg class="w-7 h-7 -mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span class="text-[10px] font-medium">Communities</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 text-[#007AFF]">
+                            <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                            </svg>
+                            <span class="text-[10px] font-medium">Chats</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1 text-[#8E8E93]">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg>
+                            <span class="text-[10px] font-medium">Settings</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Chat View -->
+                <div id="wa-chat-view"
+                    class="absolute inset-x-0 bottom-0 top-0 flex flex-col z-30 translate-x-full transition-transform duration-300 shadow-xl bg-[#E5DDD5]">
+
+                    <!-- iOS Chat Header -->
+                    <div
+                        class="bg-[#F6F6F6]/95 text-black px-1 pb-2 pt-[4rem] flex items-center border-b border-[#3C3C43]/20 z-20 backdrop-blur-md">
+                        <!-- Back Button -->
+                        <div onclick="closeWaChat()"
+                            class="flex items-center text-[#007AFF] cursor-pointer active:opacity-50 pl-1 pr-2 flex-shrink-0">
+                            <svg class="w-[30px] h-[30px] -ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                            <span class="text-[17px] -ml-1 tracking-tight">Chats</span>
+                        </div>
+                        <!-- Profile Pic -->
+                        <div
+                            class="w-[36px] h-[36px] bg-gray-200 rounded-full flex items-center justify-center overflow-hidden ml-1 mr-2 border border-black/5 flex-shrink-0">
+                            <img id="active-chat-avatar" src="" alt="avatar" class="w-full h-full object-cover" />
+                        </div>
+                        <!-- Name -->
+                        <div class="flex-1 flex flex-col justify-center min-w-0 overflow-hidden">
+                            <div id="active-chat-name"
+                                class="font-semibold text-[16px] leading-tight text-black tracking-tight truncate w-full block">
+                                Name</div>
+                            <div class="text-[12px] text-[#3C3C43]/60 font-medium tracking-tight truncate w-full block">
+                                tap here for contact
+                                info</div>
+                        </div>
+                        <!-- Video/Audio Icons -->
+                        <div class="flex gap-[18px] pr-4 text-[#007AFF] flex-shrink-0">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                            </svg>
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Chat Body Container (Relative for isolated background) -->
+                    <div class="flex-1 relative z-10 bg-[#E5DDD5] overflow-hidden">
+                        <!-- Absolute Background Layer avoiding iOS fixed-attachment bug -->
+                        <div class="absolute inset-0 z-0 pointer-events-none opacity-[0.85]"
+                            style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; background-repeat: repeat;">
+                        </div>
+
+                        <!-- Messages List -->
+                        <div id="chat-messages"
+                            class="absolute inset-0 z-10 p-4 overflow-y-auto space-y-4 pb-24 hide-scrollbar">
+                            <!-- JS populated -->
+                        </div>
+                    </div>
+
+                    <!-- iOS Chat Input Bar -->
+                    <div
+                        class="bg-[#F6F6F6] px-2 py-2 flex items-end absolute bottom-0 w-full z-20 pb-[34px] border-t border-[#3C3C43]/20">
+                        <!-- Plus Button -->
+                        <button id="chat-plus-btn"
+                            class="w-8 h-8 mb-[3px] flex items-center justify-center text-[#007AFF] flex-shrink-0 active:opacity-50 transition-opacity">
+                            <svg class="w-[26px] h-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+
+                        <!-- Input Pill -->
+                        <div
+                            class="flex-1 bg-white rounded-[20px] px-3 py-[6px] mx-2 text-[16px] text-black flex items-center border border-[#3C3C43]/20 shadow-sm min-h-[34px] self-end">
+                            <input type="text" id="chat-input" placeholder="Waiting for facts..."
+                                class="flex-1 outline-none bg-transparent" readonly>
+                            <button id="sticker-btn"
+                                class="w-6 h-6 flex items-center justify-center text-[#007AFF] ml-1 flex-shrink-0">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Right Icons -->
+                        <div class="flex items-center gap-[14px] mb-[3px] self-end px-1">
+                            <button id="chat-camera-btn"
+                                class="w-7 h-7 flex items-center justify-center text-[#007AFF] active:opacity-50 flex-shrink-0">
+                                <svg class="w-[26px] h-[26px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                                    </path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </button>
+                            <button id="chat-mic-btn"
+                                class="w-7 h-7 flex items-center justify-center text-[#007AFF] active:opacity-50 flex-shrink-0">
+                                <svg class="w-[22px] h-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                                </svg>
+                            </button>
+                            <button id="chat-send"
+                                class="w-8 h-8 bg-[#007AFF] rounded-full flex items-center justify-center text-white flex-shrink-0 cursor-pointer active:opacity-50 hidden">
+                                <svg class="w-4 h-4 ml-[2px]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOOT SCREEN -->
+            <div id="screen-boot">
+                <svg class="boot-logo" viewBox="0 0 170 170" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.2-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.74 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.93 0.21-9.84-1.96-14.74-6.52-3.13-2.73-7.04-7.41-11.73-14.04-5.03-7.08-9.16-15.29-12.41-24.65-3.47-10.2-5.21-20.07-5.21-29.59 0-10.95 2.36-20.4 7.09-28.29 3.72-6.33 8.67-11.33 14.87-14.99 6.19-3.67 12.89-5.54 20.11-5.66 3.93 0 9.08 1.21 15.47 3.6 6.38 2.4 10.47 3.61 12.28 3.61 1.36 0 5.96-1.42 13.74-4.24 7.36-2.62 13.56-3.71 18.62-3.28 13.76 1.11 24.1 6.54 31.01 16.32-12.3 7.45-18.39 17.89-18.26 31.29 0.12 10.45 3.9 19.16 11.33 26.07 3.37 3.2 7.13 5.67 11.31 7.42-0.91 2.63-1.86 5.14-2.87 7.55zM119.11 7.24c0 8.19-2.99 15.84-8.96 22.92-7.19 8.42-15.89 13.29-25.33 12.53-0.12-0.98-0.19-2.01-0.19-3.09 0-7.87 3.43-16.29 9.51-23.17 3.03-3.49 6.89-6.39 11.58-8.71 4.67-2.28 9.09-3.54 13.24-3.76 0.12 1.1 0.15 2.21 0.15 3.28z"/>
+                </svg>
+                <div class="boot-loading-bar">
+                    <div class="boot-loading-fill"></div>
+                </div>
+            </div>
+
+            <!-- LOCK SCREEN -->
+            <div id="screen-lock">
+                <div class="absolute inset-0 bg-gradient-to-b from-[#4A8BA8] via-[#2F5A76] to-[#152B44] z-0"></div>
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=400&q=80')] bg-cover bg-center opacity-30 z-[1]"></div>
+                <div class="relative z-10 flex flex-col items-center w-full h-full justify-between pt-20 pb-10">
+                    <!-- Lock icon -->
+                    <div class="flex flex-col items-center">
+                        <svg class="w-6 h-6 text-white/60 mb-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                        <div id="lock-time" class="text-white text-[72px] font-bold tracking-tight leading-none">9:41</div>
+                        <div id="lock-date" class="text-white/70 text-[20px] font-medium mt-1">Monday, April 7</div>
+                    </div>
+                    <!-- Swipe hint -->
+                    <div class="lock-swipe-hint flex flex-col items-center cursor-pointer" id="lock-swipe-area">
+                        <svg class="w-5 h-5 text-white/60 mb-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                        </svg>
+                        <span class="text-white/60 text-[14px] font-medium">Swipe up to unlock</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APP: Home -->
+            <div id="screen-home" class="app-screen absolute inset-0 flex-col bg-[#1C3A5A] overflow-hidden">
+                <!-- iOS Wallpaper Background -->
+                <div id="home-wallpaper" class="absolute inset-0 bg-gradient-to-b from-[#4A8BA8] via-[#2F5A76] to-[#152B44] z-0 transition-all duration-700 ease-in-out bg-cover bg-center"></div>
+                <div
+                    class="home-decor absolute top-[-50px] left-[-50px] w-[300px] h-[300px] bg-[#75D5A3]/30 rounded-full blur-[80px] z-0">
+                </div>
+                <div
+                    class="home-decor absolute bottom-[20%] right-[-50px] w-[350px] h-[350px] bg-[#3B82F6]/40 rounded-full blur-[90px] z-0">
+                </div>
+
+                <!-- Main App Grid -->
+                <div class="relative z-10 pt-[4rem] px-4 grid grid-cols-4 gap-y-6 justify-items-center">
+                    <!-- App: Photos -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('photos')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-apple-photos-icon-svg-download-png-493155.png"
+                                class="w-full h-full object-cover scale-[1.05]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Photos</span>
+                    </div>
+
+                    <!-- App: Camera -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('camera')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://i.pinimg.com/736x/e2/bc/2b/e2bc2b005d593253f62a4727d3da5d4f.jpg"
+                                class="w-full h-full object-cover scale-[1.15]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Camera</span>
+                    </div>
+
+                    <!-- App: Maps -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('maps')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://www.apple.com/v/maps/d/images/overview/intro_icon__dfyvjc1ohbcm_large.png"
+                                class="w-full h-full object-cover scale-[1.05]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Maps</span>
+                    </div>
+
+                    <!-- App: Clock -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('clock')">
+                        <div
+                            class="w-[60px] h-[60px] bg-black rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-apple-clock-icon-svg-download-png-493151.png"
+                                class="w-full h-full object-cover scale-[1.05]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Clock</span>
+                    </div>
+
+                    <!-- App: Calculator -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('calculator')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex flex-col items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 overflow-hidden relative">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Calculator_%28iOS_26%29_app_icon.png"
+                                class="w-full h-full object-cover scale-[1.05]">
+                        </div>
+                        <span
+                            class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Calculator</span>
+                    </div>
+
+                    <!-- App: Contacts -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('contacts')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 overflow-hidden">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Contacts_%28iOS%29.png"
+                                class="w-full h-full object-cover scale-[1.15]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Contacts</span>
+                    </div>
+
+                    <!-- App: Settings -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('settings')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-apple-settings-icon-svg-download-png-493162.png?f=webp"
+                                class="w-full h-full object-cover scale-[1.15]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Settings</span>
+                    </div>
+
+                    <!-- App: E-Library -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('elibrary')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300 relative overflow-hidden">
+                            <img src="https://play-lh.googleusercontent.com/6pcmSFPj3IaG3VaRUxc0bJDXg4CCu-rFKMG80lMT_ipiNN6HanpXguLYYA1DFqGmTw=w240-h480-rw"
+                                class="w-full h-full object-cover scale-[1.15]">
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">E-Library</span>
+                    </div>
+
+                    <!-- App: Tips -->
+                    <div class="flex flex-col items-center group cursor-pointer" onclick="openApp('tips')">
+                        <div
+                            class="w-[60px] h-[60px] bg-[#FFD60A] rounded-[1.3rem] flex items-center justify-center shadow-md mb-1.5 active:scale-[0.85] transition-all duration-300">
+                            <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <span class="text-white text-[11.5px] font-medium tracking-wide drop-shadow-md">Tips</span>
+                    </div>
+                </div>
+
+                <!-- Search Pill -->
+                <div class="absolute bottom-[135px] w-full flex justify-center z-20">
+                    <div
+                        class="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm cursor-pointer border border-white/10 active:scale-95 transition-transform">
+                        <svg class="w-3.5 h-3.5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <span class="text-white text-[13px] font-medium tracking-wide drop-shadow-sm">Search</span>
+                    </div>
+                </div>
+
+                <!-- Dock -->
+                <div
+                    class="absolute bottom-[36px] left-[16px] right-[16px] h-[86px] bg-white/25 backdrop-blur-2xl rounded-[32px] flex items-center justify-between px-3.5 z-20 border border-white/10 shadow-lg">
+                    <!-- App: Phone -->
+                    <div class="flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-300"
+                        onclick="openApp('phone')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-sm relative overflow-hidden">
+                            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOAqK7HPgd9hyUMdvwC7i90a_Umrx1AH5vjA&s"
+                                class="w-full h-full object-cover scale-[1.1]">
+                        </div>
+                    </div>
+
+                    <!-- App: Google (Browser) -->
+                    <div class="flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-300"
+                        onclick="openApp('browser')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-sm relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-white to-gray-100"></div>
+                            <svg class="relative z-10 w-[32px] h-[32px]" viewBox="0 0 48 48">
+                                <path fill="#EA4335"
+                                    d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                                <path fill="#4285F4"
+                                    d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                                <path fill="#FBBC05"
+                                    d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                                <path fill="#34A853"
+                                    d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- App: WhatsApp -->
+                    <div class="flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-300 relative"
+                        onclick="openApp('chat')">
+                        <div
+                            class="w-[60px] h-[60px] bg-[#25D366] rounded-[1.3rem] flex items-center justify-center shadow-sm relative overflow-hidden">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="white" class="drop-shadow-sm">
+                                <path
+                                    d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.487-1.761-1.66-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                            </svg>
+                        </div>
+                        <div id="wa-app-badge"
+                            class="absolute -top-1.5 -right-1 bg-[#FF3B30] text-white text-[13px] font-bold min-w-[24px] h-[24px] px-1.5 rounded-full flex items-center justify-center shadow-sm hidden z-20 transform transition-transform duration-300 scale-0 tracking-tight">
+                            1</div>
+                    </div>
+
+                    <!-- App: Files -->
+                    <div class="flex flex-col items-center group cursor-pointer active:scale-95 transition-all duration-300"
+                        onclick="openApp('files')">
+                        <div
+                            class="w-[60px] h-[60px] bg-white rounded-[1.3rem] flex items-center justify-center shadow-sm relative overflow-hidden">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d6/Files_App_icon_iOS.png"
+                                class="w-full h-full object-cover scale-[1.1]">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        <!-- APP: Google -->
+        <div id="screen-browser" class="app-screen absolute inset-0 flex-col bg-white">
+
+            <!-- Loading bar -->
+            <div id="browser-loading" class="absolute top-0 left-0 w-full h-[3px] bg-gray-100 hidden z-50">
+                <div class="h-full bg-blue-600 w-1/3 animate-[slide_1.5s_ease-in-out_infinite] rounded-r-full">
+                </div>
+                <style>
+                    @keyframes slide {
+                        0% {
+                            transform: translateX(-100%);
+                        }
+
+                        100% {
+                            transform: translateX(300%);
+                        }
+                    }
+                </style>
+            </div>
+
+            <!-- Google Home View -->
+            <div id="browser-home" class="flex-1 flex flex-col google-home-container hide-scrollbar">
+
+                <!-- Top Bar -->
+                <div class="flex items-center justify-between px-4 pt-[3.5rem] pb-2">
+                    <svg class="w-6 h-6 text-[#5f6368] cursor-pointer" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                            A</div>
+                    </div>
+                </div>
+
+                <!-- Google Logo -->
+                <div class="flex justify-center py-4">
+                    <div class="text-[32px] font-normal tracking-tight select-none"
+                        style="font-family: 'Product Sans', 'Inter', sans-serif;">
+                        <span class="text-[#4285F4]">G</span><span class="text-[#EA4335]">o</span><span
+                            class="text-[#FBBC05]">o</span><span class="text-[#4285F4]">g</span><span
+                            class="text-[#34A853]">l</span><span class="text-[#EA4335]">e</span>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="px-4 mb-4">
+                    <form id="search-form" class="google-search-bar">
+                        <svg class="w-5 h-5 text-[#9aa0a6] flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search" class="flex-1">
+                        <svg class="w-5 h-5 text-[#4285F4] flex-shrink-0 cursor-pointer" viewBox="0 0 24 24"
+                            fill="currentColor">
+                            <path
+                                d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5.91-3c0 3.31-2.69 6-6 6s-6-2.69-6-6H4c0 3.73 2.84 6.8 6.5 7.37V22h3v-2.63c3.66-.57 6.5-3.64 6.5-7.37h-1.91z" />
+                        </svg>
+                        <svg class="w-5 h-5 flex-shrink-0 cursor-pointer" viewBox="0 0 192 192" fill="none">
+                            <circle cx="96" cy="96" r="26" fill="#4285F4" />
+                            <path d="M96 26v28" stroke="#EA4335" stroke-width="18" stroke-linecap="round" />
+                            <path d="M96 138v28" stroke="#34A853" stroke-width="18" stroke-linecap="round" />
+                            <path d="M26 96h28" stroke="#FBBC05" stroke-width="18" stroke-linecap="round" />
+                            <path d="M138 96h28" stroke="#EA4335" stroke-width="18" stroke-linecap="round" />
+                            <path d="M46.5 46.5l19.8 19.8" stroke="#EA4335" stroke-width="18" stroke-linecap="round" />
+                            <path d="M125.7 125.7l19.8 19.8" stroke="#34A853" stroke-width="18"
+                                stroke-linecap="round" />
+                            <path d="M46.5 145.5l19.8-19.8" stroke="#4285F4" stroke-width="18" stroke-linecap="round" />
+                            <path d="M125.7 66.3l19.8-19.8" stroke="#FBBC05" stroke-width="18" stroke-linecap="round" />
+                        </svg>
+                        <!-- Google Lens Icon -->
+                        <svg class="w-5 h-5 ml-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M3 9V7C3 5.89543 3.89543 5 5 5H7M3 15V17C3 18.1046 3.89543 19 5 19H7M21 9V7C21 5.89543 20.1046 5 19 5H17M21 15V17C21 18.1046 20.1046 19 19 19H17"
+                                stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <circle cx="12" cy="12" r="3" stroke="#5f6368" stroke-width="2" />
+                            <circle cx="16.5" cy="16.5" r="1.5" fill="#5f6368" />
+                        </svg>
+                        <button type="submit" class="hidden"></button>
+                    </form>
+                </div>
+
+                <!-- Quick Action Pills -->
+                <div style="min-height: 60px; display: block; flex-shrink: 0;" class="w-full">
+                    <div class="google-pills hide-scrollbar"
+                        style="margin-bottom: 16px; display: flex; gap: 8px; padding: 0 16px; min-height: 44px; width: 100%; overflow-x: auto;">
+                        <!-- AI Mode -->
+                        <div class="google-pill active"
+                            style="flex: 1; min-width: 100px; border-radius: 24px; padding: 10px 0; justify-content: center; background: #f8f9fa; border: 1px solid #f1f3f4; min-height: 44px; align-items: center; display: flex;">
+                            <svg class="w-4 h-4 text-[#1a73e8]" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z" />
+                            </svg>
+                            <span class="font-medium text-[13px] text-[#202124]" style="margin-left: 6px;">AI
+                                Mode</span>
+                        </div>
+                        <!-- Sound Search -->
+                        <div class="google-pill"
+                            style="flex: 1; min-width: 100px; border-radius: 24px; padding: 10px 0; justify-content: center; background: #f8f9fa; border: 1px solid #f1f3f4; min-height: 44px; align-items: center; display: flex;">
+                            <svg class="w-4 h-4 text-[#5f6368]" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="5" y="9" width="2" height="6" rx="1" />
+                                <rect x="9" y="5" width="2" height="14" rx="1" />
+                                <rect x="13" y="7" width="2" height="10" rx="1" />
+                                <rect x="17" y="10" width="2" height="4" rx="1" />
+                                <path d="M20 2v3h-3v2h3v3h2V7h3V5h-3V2h-2z" />
+                            </svg>
+                            <span class="font-medium text-[13px] text-[#202124]" style="margin-left: 6px;">Song
+                                Search</span>
+                        </div>
+                        <!-- Identify/Translate -->
+                        <div class="google-pill"
+                            style="flex: 1; min-width: 100px; border-radius: 24px; padding: 10px 0; justify-content: center; background: #f8f9fa; border: 1px solid #f1f3f4; min-height: 44px; align-items: center; display: flex;">
+                            <span class="text-[16px] leading-[1]">🍌</span>
+                            <span class="font-medium text-[13px] text-[#202124]"
+                                style="margin-left: 6px;">Translate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Widget Cards -->
+                <div style="min-height: 70px; display: block; flex-shrink: 0;" class="w-full">
+                    <div class="google-widget-row hide-scrollbar mb-4"
+                        style="display: flex; gap: 8px; padding: 0 16px; overflow-x: auto; width: 100%;">
+                        <div class="google-widget" id="widget-gold" style="min-width: 110px;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="text-[11px] font-medium text-[#202124]">GOLD</span>
+                                <span id="gold-change" class="text-[11px] text-[#34A853]">+1.37%</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span id="gold-price" class="text-[15px] font-semibold text-[#202124]">₹147,675</span>
+                                <svg class="w-3 h-3 text-[#34A853]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="google-widget" id="widget-weather" style="min-width: 120px;">
+                            <div id="weather-city" class="text-[11px] font-medium text-[#202124] mb-1">
+                                Loading...
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="weather-temp" class="text-[15px] font-semibold text-[#202124]">--°</span>
+                                <span id="weather-desc" class="text-[11px] text-[#5f6368]"></span>
+                                <span id="weather-icon" class="text-[16px]">🌤</span>
+                            </div>
+                        </div>
+                        <div class="google-widget" id="widget-sensex" style="min-width: 110px;">
+                            <div class="flex items-center gap-1 mb-1">
+                                <span class="text-[11px] font-medium text-[#202124]">SENSEX</span>
+                                <span id="sensex-change" class="text-[11px] text-[#34A853]">+0.82%</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span id="sensex-value" class="text-[15px] font-semibold text-[#202124]">77,341</span>
+                                <svg class="w-3 h-3 text-[#34A853]" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="google-widget" id="widget-time" style="min-width: 100px;">
+                            <div class="text-[11px] font-medium text-[#202124] mb-1">Local Time</div>
+                            <div class="flex items-center gap-1">
+                                <span id="widget-clock" class="text-[15px] font-semibold text-[#202124]">--:--</span>
+                                <span class="text-[14px]">🕐</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trending / Discovery Feed -->
+                <div class="px-4 mb-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[14px] font-medium text-[#202124]">Discover</span>
+                        <span class="text-[12px] text-[#1a73e8] font-medium cursor-pointer">Customize</span>
+                    </div>
+                </div>
+
+                <div id="discover-feed">
+                    <!-- Feed populated dynamically -->
+                    <div class="google-feed-card mb-3">
+                        <div class="h-[140px] feed-shimmer rounded-t-2xl"></div>
+                        <div class="p-3">
+                            <div class="h-4 w-3/4 feed-shimmer rounded"></div>
+                            <div class="h-3 w-1/2 feed-shimmer rounded mt-2"></div>
+                        </div>
+                    </div>
+                    <div class="google-feed-card mb-3">
+                        <div class="h-[140px] feed-shimmer rounded-t-2xl"></div>
+                        <div class="p-3">
+                            <div class="h-4 w-3/4 feed-shimmer rounded"></div>
+                            <div class="h-3 w-1/2 feed-shimmer rounded mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom padding for scroll -->
+                <div class="h-20"></div>
+            </div>
+
+            <!-- Search Results View -->
+            <div id="browser-results" class="flex-1 flex-col hidden bg-white">
+                <!-- Results Header -->
+                <div class="bg-white z-10 border-b border-[#e8eaed]">
+                    <div class="px-3 pb-2 pt-[3.5rem] flex items-center gap-2">
+                        <svg class="w-6 h-6 text-[#5f6368] cursor-pointer flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" onclick="closeSearchResults()">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        <form id="search-form-results" class="google-search-bar flex-1">
+                            <input type="text" id="search-input-results" placeholder="Search" class="flex-1">
+                            <svg class="w-5 h-5 text-[#4285F4] flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5.91-3c0 3.31-2.69 6-6 6s-6-2.69-6-6H4c0 3.73 2.84 6.8 6.5 7.37V22h3v-2.63c3.66-.57 6.5-3.64 6.5-7.37h-1.91z" />
+                            </svg>
+                            <button type="submit" class="hidden"></button>
+                        </form>
+                    </div>
+                    <!-- Search tabs -->
+                    <div class="flex gap-0 px-4 hide-scrollbar overflow-x-auto" style="border-bottom: none;">
+                        <div
+                            class="px-3 py-2 text-[13px] font-medium text-[#1a73e8] border-b-[3px] border-[#1a73e8] cursor-pointer">
+                            All</div>
+                        <div class="px-3 py-2 text-[13px] font-medium text-[#5f6368] cursor-pointer">
+                            Images
+                        </div>
+                        <div class="px-3 py-2 text-[13px] font-medium text-[#5f6368] cursor-pointer">
+                            Videos
+                        </div>
+                        <div class="px-3 py-2 text-[13px] font-medium text-[#5f6368] cursor-pointer">
+                            News
+                        </div>
+                        <div class="px-3 py-2 text-[13px] font-medium text-[#5f6368] cursor-pointer">
+                            Maps
+                        </div>
+                    </div>
+                </div>
+                <!-- Results Content -->
+                <div id="search-results-content" class="flex-1 google-results-scroll pb-20">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Iframe Web Page Viewer (Browser-in-Browser) -->
+            <div id="iframe-viewer" class="iframe-browser-view">
+                <div class="iframe-browser-bar">
+                    <svg class="w-6 h-6 text-[#5f6368] cursor-pointer flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" onclick="closeIframeViewer()">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <div class="iframe-url-display" id="iframe-url-display">
+                        <svg class="inline w-3 h-3 mr-1 text-[#5f6368]" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0110 0v4" />
+                        </svg>
+                        <span id="iframe-url-text">loading...</span>
+                    </div>
+                    <svg class="w-5 h-5 text-[#5f6368] cursor-pointer flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" onclick="closeIframeViewer()">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </div>
+                <div id="iframe-loading-bar" class="w-full h-[3px] bg-gray-100">
+                    <div class="h-full bg-[#4285F4] w-1/3 animate-[slide_1.5s_ease-in-out_infinite] rounded-r-full">
+                    </div>
+                </div>
+                <iframe id="page-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    referrerpolicy="no-referrer" style="width: 10px; min-width: 100%; height: 100%;"></iframe>
+            </div>
+        </div>
+
+        <!-- APP: Dino Game -->
+        <div id="screen-dino" class="app-screen absolute inset-0 flex-col bg-[#f7f7f7] cursor-pointer select-none"
+            tabindex="0">
+            <div
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 60%; overflow: hidden; pointer-events: none; z-index: 10;">
+                <!-- 'No Internet' Text Container -->
+                <div id="dino-error-text"
+                    class="absolute w-full px-8 pt-[6rem] transition-all duration-500 transform translate-x-0 opacity-100">
+                    <svg class="w-10 h-10 text-[#535353] mb-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="2" y1="2" x2="22" y2="22"></line>
+                        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                    </svg>
+                    <h1 class="text-[26px] font-bold text-[#202124] mb-3 font-sans tracking-tight">No
+                        internet</h1>
+                    <p class="text-[16px] text-[#5f6368] mb-3 font-sans">Try:</p>
+                    <ul class="text-[16px] text-[#5f6368] list-disc ml-6 space-y-2 font-sans">
+                        <li>Checking the network cables</li>
+                        <li>Reconnecting to GNLU-WIFI</li>
+                    </ul>
+                    <p class="text-[12px] text-[#80868b] mt-8 font-sans font-mono tracking-tight">
+                        ERR_INTERNET_DISCONNECTED</p>
+                </div>
+
+                <!-- 'Fact' Text Container (Starts hidden to the right) -->
+                <div id="dino-fact-text"
+                    class="absolute w-full px-8 pt-[6rem] transition-all duration-500 transform translate-x-[120%] opacity-0 bg-[#f7f7f7]">
+                    <div class="text-[14px] font-bold text-[#ea4335] tracking-widest uppercase mb-4">
+                        Milestone Fact!
+                    </div>
+                    <h2 id="dino-fact-content"
+                        class="text-[20px] font-semibold text-[#202124] leading-snug font-sans border-l-4 border-[#ea4335] pl-4">
+                    </h2>
+                    <p id="dino-fact-hint" class="text-[14px] text-[#5f6368] mt-8 animate-pulse">Tap
+                        screen
+                        to
+                        continue...</p>
+                </div>
+            </div>
+
+            <!-- Countdown Overlay -->
+            <div id="dino-countdown-display"
+                class="absolute inset-0 flex justify-center items-center pointer-events-none z-30 opacity-0 transition-opacity duration-200">
+                <span id="dino-countdown-val"
+                    class="text-[120px] font-bold text-[#535353] font-mono tracking-widest drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] animate-pulse">3</span>
+            </div>
+
+            <!-- Absolute canvas anchored to bottom -->
+<div class="absolute inset-0 w-full h-full pointer-events-none flex items-end pb-24 z-20">
+                <canvas id="dino-canvas" width="360" height="250" class="w-full h-auto"></canvas>
+            </div>
+        </div>
+
+        <!-- APP: Phone -->
+        <div id="screen-phone" class="app-screen absolute inset-0 flex-col bg-black">
+            <div class="flex-1 flex flex-col pt-20 px-6 relative">
+                <!-- Phone Number Display -->
+                <div id="phone-display-container" class="h-[120px] flex flex-col items-center justify-center mb-8">
+                    <div id="phone-display" class="text-white text-[48px] font-normal tracking-tight truncate w-full text-center transition-all"></div>
+                    <button id="phone-add-number" class="text-[#0A84FF] text-[17px] font-medium mt-2 hidden" onclick="phoneAddContact()">Add Number</button>
+                </div>
+
+                <!-- Keypad -->
+                <div class="grid grid-cols-3 gap-x-5 gap-y-4 max-w-[290px] mx-auto w-full">
+                    <button onclick="phoneType('1')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">1</span>
+                        <span class="text-[10px] tracking-widest invisible">A</span>
+                    </button>
+                    <button onclick="phoneType('2')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">2</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">ABC</span>
+                    </button>
+                    <button onclick="phoneType('3')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">3</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">DEF</span>
+                    </button>
+                    <button onclick="phoneType('4')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">4</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">GHI</span>
+                    </button>
+                    <button onclick="phoneType('5')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">5</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">JKL</span>
+                    </button>
+                    <button onclick="phoneType('6')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">6</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">MNO</span>
+                    </button>
+                    <button onclick="phoneType('7')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">7</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">PQRS</span>
+                    </button>
+                    <button onclick="phoneType('8')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">8</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">TUV</span>
+                    </button>
+                    <button onclick="phoneType('9')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">9</span>
+                        <span class="text-[10px] tracking-[0.1em] font-bold text-white/50 mt-1 uppercase">WXYZ</span>
+                    </button>
+                    <button onclick="phoneType('*')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex items-center justify-center text-white transition-colors pt-2">
+                        <span class="text-[48px] leading-none font-light">*</span>
+                    </button>
+                    <button onclick="phoneType('0')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex flex-col items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-normal">0</span>
+                        <span class="text-[16px] font-bold text-white/50 mt-0.5 leading-none">+</span>
+                    </button>
+                    <button onclick="phoneType('#')" class="w-[78px] h-[78px] rounded-full bg-[#333333] active:bg-[#555555] flex items-center justify-center text-white transition-colors">
+                        <span class="text-[36px] leading-none font-light">#</span>
+                    </button>
+                </div>
+
+                <!-- Call Button & Delete -->
+                <div class="flex justify-center mt-10 w-full max-w-[290px] mx-auto items-center relative">
+                    <div class="w-[78px]"></div> <!-- Spacer to match layout -->
+                    <button onclick="phoneCall()" class="w-[78px] h-[78px] rounded-full bg-[#34C759] active:bg-[#2DB04D] flex items-center justify-center text-white transition-colors cursor-pointer">
+                        <svg class="w-10 h-10 fill-current" viewBox="0 0 24 24">
+                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                        </svg>
+                    </button>
+                    <button onclick="phoneDelete()" id="phone-delete-btn" class="absolute right-0 w-[78px] h-[78px] flex items-center justify-center text-white/40 active:text-white transition-colors opacity-0 pointer-events-none">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Tabs -->
+            <div class="absolute bottom-0 w-full bg-[#1C1C1E]/90 backdrop-blur-md border-t border-white/10 flex justify-around px-6 pt-2 pb-8 z-30">
+                <div class="flex flex-col items-center gap-1 text-[#8E8E93] cursor-pointer active:opacity-50">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <span class="text-[10px] font-medium">Favorites</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-[#8E8E93] cursor-pointer active:opacity-50">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    <span class="text-[10px] font-medium">Recents</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-[#8E8E93] cursor-pointer active:opacity-50">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span class="text-[10px] font-medium">Contacts</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-[#0A84FF] cursor-pointer active:opacity-50">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+                    <span class="text-[10px] font-medium">Keypad</span>
+                </div>
+                <div class="flex flex-col items-center gap-1 text-[#8E8E93] cursor-pointer active:opacity-50">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 12h-4v3h-4v-3H6V7h12v8z"/></svg>
+                    <span class="text-[10px] font-medium">Voicemail</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Calculator -->
+        <div id="screen-calculator" class="app-screen absolute inset-0 flex-col bg-black px-4 pb-12">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center w-full pt-14 px-2 relative z-30">
+                <button onclick="toggleCalcHistory()" class="w-10 h-10 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
+                <div class="relative">
+                    <button onclick="toggleCalcModeMenu()" class="w-10 h-10 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="8" y1="16" x2="16" y2="16"/></svg>
+                    </button>
+                    <!-- Mode dropdown -->
+                    <div id="calc-mode-menu" class="hidden absolute top-12 right-0 bg-[#2C2C2E] w-[220px] rounded-2xl p-2 shadow-xl border border-white/10">
+                        <button onclick="setCalcMode('basic')" class="flex items-center w-full px-3 py-2.5 text-white text-[17px] font-medium rounded-xl active:bg-[#3A3A3C]">
+                            <span class="w-6 mr-2 font-light" id="calc-check-basic">✓</span>
+                            <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+                            Basic
+                        </button>
+                        <button onclick="setCalcMode('scientific')" class="flex items-center w-full px-3 py-2.5 text-white text-[17px] font-medium rounded-xl active:bg-[#3A3A3C]">
+                            <span class="w-6 mr-2 font-light" id="calc-check-scientific"></span>
+                            <span class="w-5 h-5 mr-3 font-serif italic text-[18px]">f(x)</span>
+                            Scientific
+                        </button>
+                        <button onclick="setCalcMode('mathnotes')" class="flex items-center w-full px-3 py-2.5 text-white text-[17px] font-medium rounded-xl active:bg-[#3A3A3C]">
+                            <span class="w-6 mr-2 font-light" id="calc-check-mathnotes"></span>
+                            <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            Math Notes
+                        </button>
+                        <div class="h-[1px] bg-white/10 my-1"></div>
+                        <button onclick="setCalcMode('convert')" class="flex items-center w-full px-3 py-2.5 text-white text-[17px] font-medium rounded-xl active:bg-[#3A3A3C]">
+                            <span class="w-6 mr-2 font-light" id="calc-check-convert"></span>
+                            <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 12H8"/><path d="M12 8l-4 4 4 4"/></svg>
+                            Convert
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modals -->
+            <!-- History Modal -->
+            <div id="calc-history-modal" class="absolute inset-0 z-40 bg-black/60 hidden transition-opacity pointer-events-none opacity-0">
+                <div class="absolute bottom-0 w-full h-[85%] bg-[#1C1C1E] rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transform translate-y-full transition-transform duration-300 flex flex-col pointer-events-auto" id="calc-history-sheet">
+                    <div class="w-full flex justify-center py-2">
+                        <div class="w-12 h-1.5 rounded-full bg-white/20"></div>
+                    </div>
+                    <div class="flex justify-between items-center px-4 pt-2 pb-4">
+                        <button class="px-4 py-1.5 rounded-full bg-[#2C2C2E] active:bg-[#3A3A3C] text-white text-[15px] font-medium">Edit</button>
+                        <button onclick="toggleCalcHistory()" class="w-8 h-8 rounded-full bg-[#2C2C2E] active:bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div class="px-6 border-b border-white/10 pb-2">
+                        <span class="text-white text-[17px] font-semibold">Previous 30 Days</span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto px-6 pt-2 pb-10" id="calc-history-list">
+                        <!-- Data populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-end w-full mx-auto relative z-20">
+                <!-- Main Display -->
+                <div id="calc-display" class="text-white text-[80px] font-light text-right leading-none mb-2 w-full truncate px-2 transition-all">0</div>
+
+                <!-- Scientific Mode Keys (hidden by default) -->
+                <div id="calc-sci-keys" class="grid-cols-6 gap-2 w-full mb-2 hidden relative">
+                    <div class="text-[#8E8E93] text-[12px] absolute -top-5 left-1 mb-1 font-medium" id="calc-sci-mode-lbl">Rad</div>
+                    <!-- row 1 -->
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">(</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">)</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">mc</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">m+</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">m-</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">mr</button>
+                    <!-- row 2 -->
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">2<sup>nd</sup></button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">x<sup>2</sup></button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">x<sup>3</sup></button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">x<sup>y</sup></button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">e<sup>x</sup></button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">10<sup>x</sup></button>
+                    <!-- row 3 -->
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">1/x</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">²√x</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">³√x</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">ʸ√x</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">ln</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">log<sub>10</sub></button>
+                    <!-- row 4 -->
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">x!</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">sin</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">cos</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">tan</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center italic font-serif">e</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">EE</button>
+                    <!-- row 5 -->
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[14px] flex items-center justify-center">Rand</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">sinh</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">cosh</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">tanh</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[18px] flex items-center justify-center">π</button>
+                    <button class="w-[50px] h-[40px] rounded-full bg-[#333333] active:bg-[#737373] text-white text-[16px] flex items-center justify-center">Deg</button>
+                </div>
+
+                <!-- Standard Keys -->
+                <div id="calc-std-keys" class="grid grid-cols-4 gap-3 w-full max-w-[320px] transition-all self-center relative z-10">
+                    <button onclick="calcBackspace()" class="w-16 h-16 rounded-full bg-[#A5A5A5] active:bg-[#D4D4D2] flex items-center justify-center text-black transition-colors">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+                    </button>
+                    <button onclick="calcClear()" id="calc-ac-btn" class="w-16 h-16 rounded-full bg-[#A5A5A5] active:bg-[#D4D4D2] flex items-center justify-center text-black text-[28px] font-normal transition-colors">AC</button>
+                    <button onclick="calcOp('%')" class="w-16 h-16 rounded-full bg-[#A5A5A5] active:bg-[#D4D4D2] flex items-center justify-center text-black text-[28px] font-normal transition-colors">%</button>
+                    <button onclick="calcOp('/')" class="calc-op-btn w-16 h-16 rounded-full bg-[#FF9F0A] active:bg-[#F3C185] flex items-center justify-center text-white text-[32px] font-normal transition-colors">÷</button>
+
+                    <button onclick="calcNum('7')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">7</button>
+                    <button onclick="calcNum('8')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">8</button>
+                    <button onclick="calcNum('9')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">9</button>
+                    <button onclick="calcOp('*')" class="calc-op-btn w-16 h-16 rounded-full bg-[#FF9F0A] active:bg-[#F3C185] flex items-center justify-center text-white text-[32px] font-normal transition-colors">×</button>
+
+                    <button onclick="calcNum('4')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">4</button>
+                    <button onclick="calcNum('5')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">5</button>
+                    <button onclick="calcNum('6')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">6</button>
+                    <button onclick="calcOp('-')" class="calc-op-btn w-16 h-16 rounded-full bg-[#FF9F0A] active:bg-[#F3C185] flex items-center justify-center text-white text-[44px] font-light transition-colors pb-1">−</button>
+
+                    <button onclick="calcNum('1')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">1</button>
+                    <button onclick="calcNum('2')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">2</button>
+                    <button onclick="calcNum('3')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">3</button>
+                    <button onclick="calcOp('+')" class="calc-op-btn w-16 h-16 rounded-full bg-[#FF9F0A] active:bg-[#F3C185] flex items-center justify-center text-white text-[38px] font-normal transition-colors pb-1">+</button>
+
+                    <button onclick="calcToggleSign()" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[28px] font-normal transition-colors">+/-</button>
+                    <button onclick="calcNum('0')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-normal transition-colors">0</button>
+                    <button onclick="calcNum('.')" class="w-16 h-16 rounded-full bg-[#333333] active:bg-[#737373] flex items-center justify-center text-white text-[32px] font-bold transition-colors">.</button>
+                    <button onclick="calcEq()" class="w-16 h-16 rounded-full bg-[#FF9F0A] active:bg-[#F3C185] flex items-center justify-center text-white text-[38px] font-normal transition-colors pb-1">=</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Settings -->
+        <div id="screen-settings" class="app-screen absolute inset-0 flex-col bg-[#F2F2F7]">
+            <div class="px-4 pt-16 pb-2 text-black text-[34px] font-bold tracking-tight">Settings</div>
+            <div class="flex-1 overflow-y-auto px-4 pb-20 pt-2 hide-scrollbar">
+                <div
+                    class="bg-white rounded-xl overflow-hidden mb-6 flex items-center p-3 gap-3 shadow-sm border border-gray-100">
+                    <div
+                        class="w-14 h-14 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center border border-gray-100">
+                        <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div id="settings-username" class="text-[17px] font-semibold text-black">Guest</div>
+                        <div class="text-[13px] text-[#3C3C43]/60">Apple ID, iCloud, Media & Purchases
+                        </div>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+                <!-- Connectivity Section -->
+                <div class="bg-white rounded-xl overflow-hidden mb-6 shadow-sm border border-gray-100">
+                    <div onclick="toggleSetting('airplaneMode')"
+                        class="flex items-center px-4 py-2.5 border-b border-gray-100 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#FF9F0A] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">Airplane Mode</span>
+                        <div id="toggle-airplaneMode" class="ios-toggle"></div>
+                    </div>
+                    <div onclick="toggleSetting('wifiConnected')"
+                        class="flex items-center px-4 py-2.5 border-b border-gray-100 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#0A84FF] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">Wi-Fi</span>
+                        <span class="text-[15px] text-[#8E8E93] mr-2" id="settings-wifi-status">GNLU-WIFI</span>
+                        <div id="toggle-wifiConnected" class="ios-toggle"></div>
+                    </div>
+                </div>
+
+                 <!-- Analytics Section (Only after Phase 4) -->
+                 <div id="settings-analytics-row" class="hidden bg-white rounded-xl overflow-hidden mb-6 shadow-sm border border-gray-100">
+                    <div onclick="openSettingsSub('analytics')"
+                        class="flex items-center px-4 py-3 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#5856D6] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <span class="text-[17px] font-normal flex-1">Analytics</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- General Section -->
+                <div class="bg-white rounded-xl overflow-hidden mb-6 shadow-sm border border-gray-100">
+                    <div onclick="openSettingsSub('general')"
+                        class="flex items-center px-4 py-2.5 border-b border-gray-100 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#8E8E93] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <circle cx="12" cy="12" r="3" stroke-width="2" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">General</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Display Section -->
+                <div class="bg-white rounded-xl overflow-hidden mb-6 shadow-sm border border-gray-100">
+                    <div onclick="openSettingsSub('display')"
+                        class="flex items-center px-4 py-2.5 border-b border-gray-100 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#0A84FF] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">Display & Brightness</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div onclick="openSettingsSub('wallpaper')"
+                        class="flex items-center px-4 py-2.5 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#5AC8FA] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">Wallpaper</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Battery Section -->
+                <div class="bg-white rounded-xl overflow-hidden mb-6 shadow-sm border border-gray-100">
+                    <div onclick="openSettingsSub('battery')"
+                        class="flex items-center px-4 py-2.5 cursor-pointer active:bg-gray-50">
+                        <div class="w-7 h-7 bg-[#34C759] rounded-md mr-3 flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                            </svg>
+                        </div>
+                        <span class="text-[16px] font-medium flex-1">Battery</span>
+                        <span class="text-[15px] text-[#8E8E93] secondary-text mr-2">88%</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub Screens -->
+            <!-- Analytics -->
+            <div id="settings-sub-analytics" class="settings-sub bg-[#F2F2F7] flex-col overflow-y-auto pb-20">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('analytics')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        Settings
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">Performance Analytics</span>
+                </div>
+                
+                <div class="px-4 py-6 space-y-6">
+                    <!-- Academic Performance -->
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                        <h3 class="text-[18px] font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-6 bg-[#0A84FF] rounded-full"></span>
+                            Academic Proficiency
+                        </h3>
+                        
+                        <div class="flex items-center justify-between mb-8">
+                            <div id="academic-donut-container" class="w-28 h-28 relative">
+                                <!-- SVG Donut Chart injected here -->
+                            </div>
+                            <div class="flex-1 pl-6 space-y-2">
+                                <div class="flex justify-between text-[14px]">
+                                    <span class="text-gray-500">Correct Answers</span>
+                                    <span id="stat-correct-count" class="font-bold text-green-600">0</span>
+                                </div>
+                                <div class="flex justify-between text-[14px]">
+                                    <span class="text-gray-500">Total Attempted</span>
+                                    <span id="stat-total-count" class="font-bold text-blue-600">0</span>
+                                </div>
+                                <div class="w-full bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div id="stat-accuracy-bar" class="bg-blue-500 h-full w-0 transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="text-[13px] font-bold text-gray-400 uppercase tracking-widest mb-3">Domain Mastery</h4>
+                        <div id="academic-category-container" class="space-y-4">
+                            <!-- Category Mastery Bars injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Gaming Performance -->
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                        <h3 class="text-[18px] font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <span class="w-2 h-6 bg-[#FF9F0A] rounded-full"></span>
+                            Gaming Performance
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <div class="text-[12px] text-gray-500 mb-1">Total Deaths</div>
+                                <div id="stat-gaming-deaths" class="text-[20px] font-black text-red-500">0</div>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                <div class="text-[12px] text-gray-500 mb-1">Distraction Rate</div>
+                                <div id="stat-gaming-distractions" class="text-[20px] font-black text-purple-500">0%</div>
+                            </div>
+                        </div>
+
+                        <div class="relative h-20 bg-gray-50 rounded-xl border border-gray-100 p-3 mb-4 flex items-center gap-4 overflow-hidden">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm relative z-10">
+                                <span class="text-[24px]">🦖</span>
+                            </div>
+                            <div class="flex-1 relative z-10">
+                                <div class="text-[12px] font-bold text-gray-400 uppercase">Gaming Rank</div>
+                                <div id="stat-gaming-rank" class="text-[16px] font-bold text-gray-800">Pro Player</div>
+                            </div>
+                            <div id="gaming-score-overlay" class="absolute inset-y-0 left-0 bg-[#FF9F0A]/10 w-full z-0 transition-all duration-1000"></div>
+                        </div>
+                        
+                        <div class="space-y-2 mt-4 text-[13px] text-gray-600">
+                            <div class="flex justify-between items-center py-2 border-b border-gray-50">
+                                <span>Milestone Failures</span>
+                                <span id="stat-milestone-fails" class="font-bold text-red-400">0</span>
+                            </div>
+                            <p class="text-[11px] text-gray-400 italic">Analyzes proximity to fact box spawning and milestones during failures.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General -> About -->
+            <div id="settings-sub-general" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('general')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        Settings
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">General</span>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div onclick="openSettingsSub('about')" class="flex items-center px-4 py-2.5 border-b border-gray-100 cursor-pointer active:bg-gray-50">
+                            <span class="text-[16px] font-medium flex-1">About</span>
+                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                        <div onclick="openSettingsSub('credits')" class="flex items-center px-4 py-2.5 cursor-pointer active:bg-gray-50">
+                            <span class="text-[16px] font-medium flex-1">Created By</span>
+                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General -> About Detail -->
+            <div id="settings-sub-about" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('about')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        General
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">About</span>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
+                            <span class="text-[16px] font-medium">Model Name</span>
+                            <span class="text-[16px] text-[#8E8E93] secondary-text">iPhone 15 Pro</span>
+                        </div>
+                        <div class="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
+                            <span class="text-[16px] font-medium">Software Version</span>
+                            <span class="text-[16px] text-[#8E8E93] secondary-text">17.5.1</span>
+                        </div>
+                        <div class="flex justify-between items-center px-4 py-2.5">
+                            <span class="text-[16px] font-medium">Serial Number</span>
+                            <span class="text-[16px] text-[#8E8E93] secondary-text">GNLU2026SIM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General -> Credits -->
+            <div id="settings-sub-credits" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('credits')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        General
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">Created By</span>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="px-4 py-4 border-b border-gray-50">
+                            <div class="text-[13px] font-bold text-[#0A84FF] uppercase tracking-wider mb-2">Team Members</div>
+                            <div class="space-y-3">
+                                <div class="flex flex-col">
+                                    <span class="text-[16px] font-semibold text-black">Aalok Kumar Padey</span>
+                                    <span class="text-[13px] text-gray-500">24BAL002</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[16px] font-semibold text-black">Aaveksha Choudhary</span>
+                                    <span class="text-[13px] text-gray-500">24BAL020</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[16px] font-semibold text-black">Kuhu Dubey</span>
+                                    <span class="text-[13px] text-gray-500">24BAL050</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 py-4 border-b border-gray-50">
+                            <div class="text-[13px] font-bold text-[#0A84FF] uppercase tracking-wider mb-1">Subject</div>
+                            <span class="text-[16px] font-medium text-black">Public International Law</span>
+                        </div>
+                        <div class="px-4 py-4 border-b border-gray-50">
+                            <div class="text-[13px] font-bold text-[#0A84FF] uppercase tracking-wider mb-1">Assessment</div>
+                            <span class="text-[16px] font-medium text-black">Creative Component (30 Marks)</span>
+                        </div>
+                        <div class="px-4 py-4">
+                            <div class="text-[13px] font-bold text-[#0A84FF] uppercase tracking-wider mb-1">Professor</div>
+                            <span class="text-[16px] font-medium text-black">Dr. Harsha Rajwanshi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Display Screen -->
+            <div id="settings-sub-display" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('display')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        Settings
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">Display</span>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div onclick="toggleSetting('darkMode')" class="flex items-center px-4 py-2.5 cursor-pointer active:bg-gray-50">
+                            <span class="text-[16px] font-medium flex-1">Dark Mode</span>
+                            <div id="toggle-darkMode" class="ios-toggle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallpaper Screen -->
+            <div id="settings-sub-wallpaper" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('wallpaper')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        Settings
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">Wallpaper</span>
+                </div>
+                <div class="flex-1 overflow-y-auto">
+                    <div class="wallpaper-grid">
+                        <div onclick="setWallpaper('default')" id="wp-default" class="wallpaper-item" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')"></div>
+                        <div onclick="setWallpaper('aurora')" id="wp-aurora" class="wallpaper-item" style="background-image: url('https://images.unsplash.com/photo-1531315630201-bb15b9966a1c?q=80&w=2564&auto=format&fit=crop')"></div>
+                        <div onclick="setWallpaper('minimal')" id="wp-minimal" class="wallpaper-item" style="background-image: url('https://images.unsplash.com/photo-1477346611705-65d1883cee1e?q=80&w=2670&auto=format&fit=crop')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battery Screen -->
+            <div id="settings-sub-battery" class="settings-sub no-dark-override">
+                <div class="px-2 pt-14 pb-2 border-b border-gray-100 flex items-center">
+                    <button onclick="closeSettingsSub('battery')" class="flex items-center text-[#0A84FF] text-[17px] font-medium px-2">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        Settings
+                    </button>
+                    <span class="flex-1 text-center font-bold text-[17px] pr-10">Battery</span>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-6">
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div onclick="toggleSetting('lowPowerMode')" class="flex items-center px-4 py-2.5 cursor-pointer active:bg-gray-50">
+                            <div class="flex-1">
+                                <span class="text-[16px] font-medium block">Low Power Mode</span>
+                                <span class="text-[12px] text-[#8E8E93] secondary-text block leading-tight">Reduces background activity and visual effects.</span>
+                            </div>
+                            <div id="toggle-lowPowerMode" class="ios-toggle"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center px-4 py-2.5">
+                            <span class="text-[16px] font-medium">Battery Health</span>
+                            <span class="text-[16px] text-[#34C759]">100% Peak Capacity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+        <!-- APP: Clock -->
+        <div id="screen-clock" class="app-screen absolute inset-0 flex-col bg-black">
+
+            <!-- World Clock View -->
+            <div id="clock-view-worldclock" class="absolute inset-0 flex flex-col pb-[70px]">
+                <div class="px-4 pt-14 pb-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <button class="px-4 py-1.5 rounded-full border border-white/20 text-white text-[15px] font-medium active:bg-white/10">Edit</button>
+                        <button class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white active:bg-white/10">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                    <h1 class="text-white text-[34px] font-bold tracking-tight">World Clock</h1>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 pt-2" id="world-clock-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Alarms View -->
+            <div id="clock-view-alarms" class="absolute inset-0 flex flex-col pb-[70px] hidden">
+                <div class="px-4 pt-14 pb-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <button class="px-4 py-1.5 rounded-full border border-white/20 text-white text-[15px] font-medium active:bg-white/10">Edit</button>
+                        <button onclick="addNewAlarm()" class="w-9 h-9 rounded-full border border-white/20 flex items-center justify-center text-white active:bg-white/10">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                    <h1 class="text-white text-[34px] font-bold tracking-tight">Alarms</h1>
+                </div>
+                <div class="flex-1 overflow-y-auto px-4 pt-2">
+                    <!-- Sleep Section -->
+                    <div class="border-b border-white/10 pb-4 mb-2">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg>
+                            <span class="text-white text-[17px] font-semibold">Sleep | Wake Up</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[#8E8E93] text-[38px] font-light">No Alarm</span>
+                            <button class="bg-[#2C2C2E] px-3 py-1.5 rounded-lg text-[#FF9F0A] text-[13px] font-bold uppercase tracking-wide active:bg-[#3A3A3C]">Change</button>
+                        </div>
+                    </div>
+                    <!-- Other Alarms -->
+                    <div>
+                        <span class="text-white text-[20px] font-bold">Other</span>
+                        <div id="alarms-list" class="mt-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stopwatch View -->
+            <div id="clock-view-stopwatch" class="absolute inset-0 flex flex-col pb-[70px] hidden">
+                <div class="flex-1 flex flex-col items-center pt-28">
+                    <div id="stopwatch-display" class="text-white text-[72px] font-extralight tracking-[0.04em]" style="font-variant-numeric: tabular-nums;">00:00.00</div>
+                    <div class="flex w-full px-5 justify-between mt-14">
+                        <button onclick="stopwatchLapReset()" id="stopwatch-lap-btn"
+                            class="w-[80px] h-[80px] rounded-full bg-[#333333] active:bg-[#444444] flex items-center justify-center text-white font-medium text-[16px]">Lap</button>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                            <div class="w-2 h-2 rounded-full bg-white"></div>
+                        </div>
+                        <button onclick="stopwatchStartStop()" id="stopwatch-start-btn"
+                            class="w-[80px] h-[80px] rounded-full bg-[#0A3A1A] text-[#34C759] active:bg-[#0D4D22] flex items-center justify-center font-semibold text-[17px]">Start</button>
+                    </div>
+                    <div class="w-full flex-1 mt-6 border-t border-white/10 px-4 overflow-y-auto" id="stopwatch-laps"></div>
+                </div>
+            </div>
+
+            <!-- Timers View -->
+            <div id="clock-view-timers" class="absolute inset-0 flex flex-col pb-[70px] hidden">
+                <div class="flex-1 flex flex-col items-center justify-center px-6">
+                    <!-- Timer Display (when running) -->
+                    <div id="timer-running-display" class="hidden flex-col items-center w-full">
+                        <div id="timer-countdown" class="text-white text-[72px] font-extralight mb-8" style="font-variant-numeric: tabular-nums;">00:00</div>
+                        <div class="flex justify-between w-full px-4">
+                            <button onclick="cancelTimer()" class="w-[80px] h-[80px] rounded-full bg-[#333333] active:bg-[#444444] flex items-center justify-center text-white font-medium text-[16px]">Cancel</button>
+                            <button onclick="pauseResumeTimer()" id="timer-pause-btn" class="w-[80px] h-[80px] rounded-full bg-[#3B1A12] text-[#FF9F0A] active:bg-[#4A2015] flex items-center justify-center font-semibold text-[17px]">Pause</button>
+                        </div>
+                    </div>
+                    <!-- Timer Picker (when not running) -->
+                    <div id="timer-picker-display" class="flex flex-col items-center w-full">
+                        <div class="flex items-center gap-1 mb-8">
+                            <div class="flex flex-col items-center">
+                                <input id="timer-hours" type="number" min="0" max="23" value="0" class="w-[70px] h-[70px] text-center text-white text-[40px] font-light bg-[#2C2C2E] rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A]" style="font-variant-numeric: tabular-nums; appearance: textfield; -moz-appearance: textfield;">
+                                <span class="text-[#8E8E93] text-[12px] mt-1">hours</span>
+                            </div>
+                            <span class="text-white text-[40px] font-light mt-[-20px]">:</span>
+                            <div class="flex flex-col items-center">
+                                <input id="timer-minutes" type="number" min="0" max="59" value="5" class="w-[70px] h-[70px] text-center text-white text-[40px] font-light bg-[#2C2C2E] rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A]" style="font-variant-numeric: tabular-nums; appearance: textfield; -moz-appearance: textfield;">
+                                <span class="text-[#8E8E93] text-[12px] mt-1">min</span>
+                            </div>
+                            <span class="text-white text-[40px] font-light mt-[-20px]">:</span>
+                            <div class="flex flex-col items-center">
+                                <input id="timer-seconds" type="number" min="0" max="59" value="0" class="w-[70px] h-[70px] text-center text-white text-[40px] font-light bg-[#2C2C2E] rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A]" style="font-variant-numeric: tabular-nums; appearance: textfield; -moz-appearance: textfield;">
+                                <span class="text-[#8E8E93] text-[12px] mt-1">sec</span>
+                            </div>
+                        </div>
+                        <button onclick="startTimer()" class="w-full py-4 rounded-2xl bg-[#0A3A1A] text-[#34C759] text-[18px] font-semibold active:bg-[#0D4D22] transition-colors">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Tab Bar -->
+            <div class="absolute bottom-0 w-full bg-[#2C2C2E]/90 backdrop-blur-md rounded-t-2xl flex justify-around px-3 pt-2 pb-6 z-30 mx-auto" style="left:0;right:0;">
+                <button onclick="switchClockTab('worldclock')" id="clock-tab-worldclock" class="flex flex-col items-center gap-1 text-[#8E8E93] px-2">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span class="text-[10px] font-medium">World Clock</span>
+                </button>
+                <button onclick="switchClockTab('alarms')" id="clock-tab-alarms" class="flex flex-col items-center gap-1 text-[#8E8E93] px-2">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-4h2v-1h-2v1zm0-3h2V7h-2v6z"/><path d="M7.88 3.39L6.6 1.86 2.38 5.31l1.27 1.53zM21.62 5.31l-4.22-3.45-1.27 1.53 4.22 3.45z"/></svg>
+                    <span class="text-[10px] font-medium">Alarms</span>
+                </button>
+                <button onclick="switchClockTab('stopwatch')" id="clock-tab-stopwatch" class="flex flex-col items-center gap-1 text-[#FF9F0A] px-2">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2h2v4h-2zM18.8 6.5l-1.4-1.4-2.8 2.8 1.4 1.4zM12 7c-3.9 0-7 3.1-7 7s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7zm0 12c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5-2.2 5-5 5zm-1-5h2V9h-2v5z"/></svg>
+                    <span class="text-[10px] font-semibold">Stopwatch</span>
+                </button>
+                <button onclick="switchClockTab('timers')" id="clock-tab-timers" class="flex flex-col items-center gap-1 text-[#8E8E93] px-2">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span class="text-[10px] font-medium">Timers</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- APP: Photos -->
+        <div id="screen-photos" class="app-screen absolute inset-0 flex-col bg-[#F2F2F7]">
+
+            <!-- Photo Viewer Overlay -->
+            <div id="photo-viewer" class="absolute inset-0 bg-black z-[60] hidden flex-col" style="display:none;">
+                <!-- Viewer Header -->
+                <div class="absolute top-0 w-full flex justify-between items-center px-4 pt-14 pb-3 z-10 bg-gradient-to-b from-black/60 to-transparent">
+                    <button onclick="closePhotoViewer()" class="text-white text-[17px] font-medium active:opacity-50">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    <button onclick="togglePhotoFavorite()" class="active:opacity-50">
+                        <svg id="photo-fav-icon" class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                </div>
+
+                <!-- Photo Display -->
+                <div class="flex-1 flex items-center justify-center relative" onclick="closePhotoViewer()">
+                    <!-- Nav Arrows -->
+                    <button onclick="event.stopPropagation(); prevPhoto()" class="absolute left-2 z-20 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white active:bg-black/60">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <img id="photo-viewer-img" src="" class="max-w-full max-h-full object-contain select-none" onclick="event.stopPropagation()">
+                    <button onclick="event.stopPropagation(); nextPhoto()" class="absolute right-2 z-20 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white active:bg-black/60">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg>
+                    </button>
+                </div>
+
+                <!-- Viewer Action Bar -->
+                <div class="absolute bottom-0 w-full flex justify-around items-center px-6 pt-3 pb-8 bg-gradient-to-t from-black/60 to-transparent z-10">
+                    <button class="text-white flex flex-col items-center gap-1 active:opacity-50">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                        <span class="text-[10px]">Share</span>
+                    </button>
+                    <button onclick="togglePhotoFavorite()" class="text-white flex flex-col items-center gap-1 active:opacity-50">
+                        <svg id="photo-fav-icon-bar" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <span class="text-[10px]">Favorite</span>
+                    </button>
+                    <button class="text-white flex flex-col items-center gap-1 active:opacity-50">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span class="text-[10px]">Delete</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Library View -->
+            <div id="photos-library-view" class="absolute inset-0 flex flex-col">
+                <!-- Header -->
+                <div class="px-4 pt-14 pb-2 bg-[#F2F2F7]/95 backdrop-blur-md z-20">
+                    <div class="flex justify-between items-center mb-1">
+                        <div>
+                            <h1 class="text-[34px] font-bold text-black tracking-tight leading-tight">Library</h1>
+                            <span id="photos-count" class="text-[15px] text-[#8E8E93] font-medium">0 Items</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="w-[38px] h-[38px] rounded-full bg-[#E5E5EA] flex items-center justify-center active:bg-[#D1D1D6]">
+                                <svg class="w-5 h-5 text-[#3C3C43]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                            </button>
+                            <label class="px-4 py-[6px] rounded-full bg-[#E5E5EA] text-[15px] font-semibold text-black cursor-pointer active:bg-[#D1D1D6]">
+                                Select
+                                <input type="file" id="photo-upload" multiple accept="image/*" class="hidden" onchange="uploadPhotos(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Photo Grid -->
+                <div class="flex-1 overflow-y-auto pb-[80px]">
+                    <div id="photos-grid" class="grid grid-cols-3 gap-[1px] bg-[#F2F2F7]">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collections View -->
+            <div id="photos-collections-view" class="absolute inset-0 flex flex-col hidden">
+                <!-- Header -->
+                <div class="px-4 pt-14 pb-2 bg-[#F2F2F7]/95 backdrop-blur-md z-20">
+                    <div class="flex justify-between items-center mb-1">
+                        <div>
+                            <h1 class="text-[34px] font-bold text-black tracking-tight leading-tight">Collections</h1>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button class="w-[38px] h-[38px] rounded-full bg-[#E5E5EA] flex items-center justify-center active:bg-[#D1D1D6]">
+                                <svg class="w-5 h-5 text-[#3C3C43]" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                            </button>
+                            <div class="w-[38px] h-[38px] rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">A</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Collections Content -->
+                <div class="flex-1 overflow-y-auto pb-[80px] px-4 pt-2">
+                    <!-- Memories -->
+                    <div class="mb-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-[22px] font-bold text-black">Memories <span class="text-[#8E8E93] text-[18px]">›</span></h2>
+                            <svg class="w-6 h-6 text-[#007AFF]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar">
+                            <div class="min-w-[200px] h-[260px] rounded-2xl overflow-hidden relative flex-shrink-0 bg-gray-200 shadow-sm">
+                                <img src="https://www.campusoption.com/images/colleges/gallery/30_11_16_061248_gn_2.jpeg" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-3 left-3 text-white">
+                                    <div class="text-[17px] font-bold leading-tight">Campus</div>
+                                    <div class="text-[12px] text-white/80 uppercase tracking-wider font-medium">GNLU LIFE</div>
+                                </div>
+                            </div>
+                            <div class="min-w-[200px] h-[260px] rounded-2xl overflow-hidden relative flex-shrink-0 bg-gray-200 shadow-sm">
+                                <img src="https://gnlu.ac.in//Document/photo-gallery/Banking-And-Finance-Law/L_d7214b76-46d1-45f8-a301-f572b705dffd.jpeg" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-3 left-3 text-white">
+                                    <div class="text-[17px] font-bold leading-tight">Events</div>
+                                    <div class="text-[12px] text-white/80 uppercase tracking-wider font-medium">LECTURES</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pinned -->
+                    <div class="mb-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-[22px] font-bold text-black">Pinned <span class="text-[#8E8E93] text-[18px]">›</span></h2>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[#007AFF] text-[15px] font-medium">Edit</span>
+                                <svg class="w-6 h-6 text-[#007AFF]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar">
+                            <div class="min-w-[110px] h-[110px] rounded-2xl overflow-hidden relative flex-shrink-0 bg-gray-100 shadow-sm" onclick="switchPhotosTab('library')">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2gWeC-89DS0daJLXHcPijB8vHwN-FUDAvrQ&s" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                <div class="absolute top-2 right-2">
+                                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                                </div>
+                                <div class="absolute bottom-2 left-2 text-white text-[12px] font-semibold">Favorites</div>
+                            </div>
+                            <div class="min-w-[110px] h-[110px] rounded-2xl overflow-hidden relative flex-shrink-0 bg-gray-100 shadow-sm" onclick="switchPhotosTab('library')">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQkNFZQXADk4R16wU8rEa7OrQANly4uvtP09Q&s" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                <div class="absolute bottom-2 left-2 text-white text-[12px] font-semibold leading-tight">Recently<br>Saved</div>
+                            </div>
+                            <div class="min-w-[110px] h-[110px] rounded-2xl overflow-hidden relative flex-shrink-0 bg-[#E8F5E9] shadow-sm">
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-[#34A853]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+                                </div>
+                                <div class="absolute bottom-2 left-2 text-[#1C1C1E] text-[12px] font-semibold">Map</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Albums -->
+                    <div class="mb-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-[22px] font-bold text-black">Albums <span class="text-[#8E8E93] text-[18px]">›</span></h2>
+                            <svg class="w-6 h-6 text-[#007AFF]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <div class="flex gap-2 overflow-x-auto hide-scrollbar">
+                            <div class="min-w-[130px] rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-sm" onclick="switchPhotosTab('library')">
+                                <div class="h-[100px] bg-gray-200 overflow-hidden">
+                                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqmNDd9hQakKbw_ujLNZP4K4_aBohNgLOt1Q&s" class="w-full h-full object-cover">
+                                </div>
+                                <div class="p-2">
+                                    <div class="text-[13px] font-semibold text-black">GNLU</div>
+                                    <div class="text-[11px] text-[#8E8E93]">5</div>
+                                </div>
+                            </div>
+                            <div class="min-w-[130px] rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-sm">
+                                <div class="h-[100px] bg-[#F2F2F7] flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-[#C7C7CC]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                </div>
+                                <div class="p-2">
+                                    <div class="text-[13px] font-semibold text-black">Recents</div>
+                                    <div class="text-[11px] text-[#8E8E93]">0</div>
+                                </div>
+                            </div>
+                            <div class="min-w-[130px] rounded-2xl overflow-hidden flex-shrink-0 bg-white shadow-sm">
+                                <div class="h-[100px] bg-[#F2F2F7] flex items-center justify-center">
+                                    <svg class="w-10 h-10 text-[#C7C7CC]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                </div>
+                                <div class="p-2">
+                                    <div class="text-[13px] font-semibold text-black">Screenshots</div>
+                                    <div class="text-[11px] text-[#8E8E93]">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Tab Bar -->
+            <div class="absolute bottom-0 w-full bg-[#F6F6F6]/95 backdrop-blur-md border-t border-[#3C3C43]/20 z-30 flex items-center px-4 pt-2 pb-6">
+                <!-- Library Tab -->
+                <button id="photos-tab-library" onclick="switchPhotosTab('library')" class="flex-1 flex flex-col items-center gap-1 text-[#007AFF]">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11-4l2.03 2.71L16 11l4 5H8l3-4zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Library</span>
+                </button>
+                <!-- Collections Tab -->
+                <button id="photos-tab-collections" onclick="switchPhotosTab('collections')" class="flex-1 flex flex-col items-center gap-1 text-[#8E8E93]">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2 4h14v14H2zM18 8h2v14H6v-2h12z"/>
+                    </svg>
+                    <span class="text-[10px] font-medium">Collections</span>
+                </button>
+                <!-- Search Button -->
+                <button class="ml-2 w-[52px] h-[52px] rounded-full bg-[#E5E5EA] flex items-center justify-center shadow-sm active:bg-[#D1D1D6] flex-shrink-0 -mt-1">
+                    <svg class="w-6 h-6 text-[#3C3C43]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- APP: Camera -->
+        <div id="screen-camera" class="app-screen absolute inset-0 flex-col bg-black">
+            <!-- Camera Viewfinder -->
+            <div class="flex-1 relative overflow-hidden bg-[#111] z-10">
+                <video id="camera-feed" class="w-full h-full object-cover" autoplay playsinline></video>
+                <canvas id="camera-canvas" class="hidden"></canvas>
+                <!-- Grid Overlay -->
+                <div class="absolute inset-0 pointer-events-none z-20">
+                    <div class="absolute top-0 left-1/3 w-[0.5px] h-full bg-white/20"></div>
+                    <div class="absolute top-0 left-2/3 w-[0.5px] h-full bg-white/20"></div>
+                    <div class="absolute left-0 top-1/3 w-full h-[0.5px] bg-white/20"></div>
+                    <div class="absolute left-0 top-2/3 w-full h-[0.5px] bg-white/20"></div>
+                    <!-- Crosshair -->
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <div class="w-[1px] h-5 bg-white/40 absolute -top-2.5 left-1/2"></div>
+                        <div class="w-5 h-[1px] bg-white/40 absolute top-1/2 -left-2.5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Controls -->
+            <div class="absolute top-14 right-4 flex items-center gap-4 z-30">
+                <button id="cam-night-btn" onclick="toggleCameraSetting('night')" class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white active:bg-black/60">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                <button id="cam-flash-btn" onclick="toggleCameraSetting('flash')" class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-yellow-400 active:bg-black/60">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/></svg>
+                </button>
+                <button id="cam-menu-btn" onclick="toggleCameraMenu()" class="w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white active:bg-black/60">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>
+                </button>
+            </div>
+
+            <!-- Camera Menu Overlay -->
+            <div id="camera-menu" class="absolute bottom-[220px] left-1/2 -translate-x-1/2 w-[85%] bg-[#2C2C2E]/95 backdrop-blur-xl rounded-3xl p-6 z-40 hidden" style="display:none;">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <button onclick="toggleCameraSetting('flash')" class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-yellow-400">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/><line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Flash</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Live</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Timer</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Exposure</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="7"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Filter</span>
+                    </button>
+                    <button class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><text x="12" y="13" text-anchor="middle" font-size="8" fill="white" stroke="none" font-weight="bold">4:3</text></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Aspect</span>
+                    </button>
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button onclick="toggleCameraSetting('night')" class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-[#3A3A3C] flex items-center justify-center text-white">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </div>
+                        <span class="text-white text-[11px] font-semibold uppercase">Night Mode</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="absolute bottom-0 w-full z-30 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-8">
+                <!-- Zoom Selector -->
+                <div class="flex justify-center gap-3 mb-4">
+                    <button id="cam-zoom-05" onclick="setCameraZoom('0.5')" class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white text-[13px] font-semibold flex items-center justify-center border border-white/20 active:bg-white/20">0.5</button>
+                    <button id="cam-zoom-1" onclick="setCameraZoom('1')" class="w-10 h-10 rounded-full bg-yellow-500/90 text-black text-[13px] font-bold flex items-center justify-center active:bg-yellow-400">1×</button>
+                </div>
+                <!-- Shutter Row -->
+                <div class="flex items-center justify-between px-8 mb-3">
+                    <div id="camera-gallery-preview"
+                        class="w-14 h-14 bg-gray-800 rounded-xl overflow-hidden border-2 border-white/30 shadow-lg cursor-pointer"
+                        onclick="openApp('photos')"></div>
+                    <button onclick="takePhoto()"
+                        class="w-[76px] h-[76px] rounded-full border-[4px] border-white flex items-center justify-center active:scale-95 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+                        <div class="w-[64px] h-[64px] bg-white rounded-full shadow-inner"></div>
+                    </button>
+                    <button onclick="flipCamera()"
+                        class="w-14 h-14 bg-[#2C2C2E] rounded-full flex items-center justify-center text-white active:bg-[#3A3A3C] transition-colors shadow-lg border border-white/10">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Mode Selector -->
+                <div class="flex justify-center items-center gap-1 pb-8">
+                    <button id="cam-mode-video" onclick="setCameraMode('video')" class="px-4 py-1.5 rounded-full text-[13px] font-semibold text-white/60 active:text-white transition-colors">VIDEO</button>
+                    <button id="cam-mode-photo" onclick="setCameraMode('photo')" class="px-4 py-1.5 rounded-full bg-[#2C2C2E]/80 text-yellow-400 text-[13px] font-bold active:bg-[#3A3A3C] transition-colors">PHOTO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Maps -->
+        <div id="screen-maps" class="app-screen absolute inset-0 flex-col bg-[#1C1C1E]">
+            <!-- Leaflet Map Container -->
+            <div id="leaflet-map" class="absolute inset-0 z-10" style="background:#1C1C1E;"></div>
+
+            <!-- Right-side floating buttons -->
+            <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-30">
+                <button onclick="toggleMapStyle()" class="w-11 h-11 rounded-full bg-[#2C2C2E]/90 backdrop-blur-md flex items-center justify-center text-white text-[13px] font-bold shadow-lg border border-white/10 active:bg-[#3A3A3C]">3D</button>
+                <button class="w-11 h-11 rounded-full bg-[#2C2C2E]/90 backdrop-blur-md flex items-center justify-center text-white shadow-lg border border-white/10 active:bg-[#3A3A3C]">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </button>
+                <button onclick="mapsLocateMe()" class="w-11 h-11 rounded-full bg-[#2C2C2E]/90 backdrop-blur-md flex items-center justify-center text-[#007AFF] shadow-lg border border-white/10 active:bg-[#3A3A3C]">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                </button>
+            </div>
+
+            <!-- Bottom Sheet -->
+            <div id="maps-bottom-sheet" class="absolute bottom-0 w-full z-30 transition-all duration-300 ease-out" style="max-height: 45%;">
+                <!-- Handle -->
+                <div class="flex justify-center pt-2 pb-1 cursor-grab" onclick="toggleMapsSheet()">
+                    <div class="w-9 h-[5px] rounded-full bg-[#5C5C5E]"></div>
+                </div>
+                <div class="bg-[#1C1C1E]/95 backdrop-blur-xl rounded-t-[20px] overflow-hidden">
+                    <!-- Search Bar -->
+                    <div class="px-4 pt-3 pb-3">
+                        <div class="flex items-center gap-2">
+                            <div id="maps-search-bar" onclick="openMapsSearch()" class="flex-1 bg-[#2C2C2E] rounded-xl flex items-center px-3 py-2.5 cursor-text border border-white/5">
+                                <svg class="w-4 h-4 text-[#8E8E93] mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <span class="text-[#8E8E93] text-[16px]">Apple Maps</span>
+                            </div>
+                            <button class="w-10 h-10 rounded-full flex items-center justify-center text-[#8E8E93] active:text-white flex-shrink-0">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 15 6.7 12H5c0 3.42 2.72 6.23 6 6.72V22h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                            </button>
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 shadow-sm">A</div>
+                        </div>
+                    </div>
+                    <!-- Default Content -->
+                    <div id="maps-default-content" class="px-4 pb-6 overflow-y-auto" style="max-height: 280px;">
+                        <!-- Places -->
+                        <div class="mb-4">
+                            <div class="flex items-center gap-1 mb-3">
+                                <span class="text-white text-[20px] font-bold">Places</span>
+                                <svg class="w-4 h-4 text-[#8E8E93]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 6 15 12 9 18"/></svg>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="w-[60px] h-[60px] rounded-2xl bg-[#007AFF] flex items-center justify-center">
+                                        <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                                    </div>
+                                    <span class="text-white text-[12px] font-medium">Home</span>
+                                    <span class="text-[#007AFF] text-[11px]">Add</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="w-[60px] h-[60px] rounded-2xl bg-[#007AFF] flex items-center justify-center">
+                                        <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7h-4V5l-2-2h-4L8 5v2H4c-1.1 0-2 .9-2 2v5c0 .75.4 1.38 1 1.73V19c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2v-3.28c.59-.35 1-.99 1-1.72V9c0-1.1-.9-2-2-2zm-6 0h-4V5h4v2z"/></svg>
+                                    </div>
+                                    <span class="text-white text-[12px] font-medium">Work</span>
+                                    <span class="text-[#007AFF] text-[11px]">Add</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-1">
+                                    <div class="w-[60px] h-[60px] rounded-2xl bg-[#2C2C2E] flex items-center justify-center border border-white/10">
+                                        <svg class="w-7 h-7 text-[#8E8E93]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                    </div>
+                                    <span class="text-white text-[12px] font-medium">Add</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Recents -->
+                        <div>
+                            <div class="flex items-center gap-1 mb-2">
+                                <span class="text-white text-[20px] font-bold">Recents</span>
+                                <svg class="w-4 h-4 text-[#8E8E93]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 6 15 12 9 18"/></svg>
+                            </div>
+                            <div id="maps-recents" class="bg-[#2C2C2E] rounded-xl overflow-hidden">
+                                <div class="flex items-center px-4 py-3">
+                                    <div class="w-8 h-8 rounded-full bg-[#3A3A3C] flex items-center justify-center mr-3 flex-shrink-0">
+                                        <svg class="w-4 h-4 text-[#8E8E93]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    </div>
+                                    <span class="text-white text-[15px] font-medium flex-1">GNLU, Gandhinagar</span>
+                                    <button class="text-[#8E8E93] active:text-white">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Overlay -->
+            <div id="maps-search-overlay" class="absolute inset-0 bg-[#1C1C1E] z-40 flex flex-col hidden" style="display:none;">
+                <!-- Search Header -->
+                <div class="px-4 pt-14 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-[#2C2C2E] rounded-xl flex items-center px-3 py-2.5 border border-white/5">
+                            <svg class="w-4 h-4 text-[#8E8E93] mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input id="maps-search-input" type="text" placeholder="Apple Maps" class="bg-transparent flex-1 outline-none text-[16px] text-white placeholder-[#8E8E93]" oninput="searchMapsPlaces(this.value)">
+                        </div>
+                        <button class="text-[#8E8E93] p-1">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15c1.66 0 2.99-1.34 2.99-3L15 6c0-1.66-1.34-3-3-3S9 4.34 9 6v6c0 1.66 1.34 3 3 3z"/></svg>
+                        </button>
+                        <button onclick="closeMapsSearch()" class="text-white active:text-[#8E8E93]">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Search Results / Find Nearby -->
+                <div class="flex-1 overflow-y-auto px-4">
+                    <!-- Find Nearby (default) -->
+                    <div id="maps-find-nearby">
+                        <h3 class="text-white text-[20px] font-bold mb-3">Find Nearby</h3>
+                        <div class="bg-[#2C2C2E] rounded-xl overflow-hidden">
+                            <div onclick="searchMapsCategory('Gas Stations')" class="flex items-center px-4 py-3.5 border-b border-white/5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#007AFF] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">Gas Stations</span>
+                            </div>
+                            <div onclick="searchMapsCategory('Restaurants')" class="flex items-center px-4 py-3.5 border-b border-white/5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#FF9500] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2v7zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">Restaurants</span>
+                            </div>
+                            <div onclick="searchMapsCategory('Hotels')" class="flex items-center px-4 py-3.5 border-b border-white/5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#AF52DE] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">Hotels</span>
+                            </div>
+                            <div onclick="searchMapsCategory('Train Stations')" class="flex items-center px-4 py-3.5 border-b border-white/5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#5856D6] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2l2-2h4l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-6H6V6h5v5zm2 0V6h5v5h-5zm3.5 6c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">Train Stations</span>
+                            </div>
+                            <div onclick="searchMapsCategory('CNG Stations')" class="flex items-center px-4 py-3.5 border-b border-white/5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#34C759] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">CNG Stations</span>
+                            </div>
+                            <div onclick="searchMapsCategory('Bus Stops')" class="flex items-center px-4 py-3.5 cursor-pointer active:bg-[#3A3A3C]">
+                                <div class="w-9 h-9 rounded-full bg-[#FF9500] flex items-center justify-center mr-3"><svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg></div>
+                                <span class="text-white text-[16px] font-medium">Bus Stops</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Search Results -->
+                    <div id="maps-search-results" class="hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Files -->
+        <div id="screen-files" class="app-screen absolute inset-0 flex-col bg-white">
+            <div
+                class="px-4 pt-16 pb-2 border-b border-gray-100 flex justify-between items-end bg-white/90 backdrop-blur z-20">
+                <div class="text-black text-[34px] font-bold tracking-tight">Browse</div>
+                <svg class="w-6 h-6 text-[#0A84FF] mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path stroke-linecap="round" d="M12 8v8m-4-4h8" />
+                </svg>
+            </div>
+            <div class="flex-1 overflow-y-auto bg-[#F2F2F7] px-4 pt-4 pb-20">
+                <div class="text-[20px] font-bold text-black mb-3">Locations</div>
+                <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 mb-6">
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100">
+                        <svg class="w-6 h-6 text-[#0A84FF] mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+                        </svg>
+                        <span class="text-[17px] flex-1 font-medium">iCloud Drive</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center px-4 py-3 border-b border-gray-100">
+                        <svg class="w-6 h-6 text-[#34C759] mr-3" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        <span class="text-[17px] flex-1 font-medium">On My iPhone</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div class="flex items-center px-4 py-3">
+                        <svg class="w-6 h-6 text-[#FF3B30] mr-3" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span class="text-[17px] flex-1 font-medium">Recently Deleted</span>
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Contacts -->
+        <div id="screen-contacts" class="app-screen absolute inset-0 flex-col bg-white">
+            <div
+                class="px-4 pt-16 pb-2 flex justify-between items-end bg-white/90 backdrop-blur z-20 border-b border-gray-100">
+                <div class="text-black text-[34px] font-bold tracking-tight">Contacts</div>
+                <svg class="w-6 h-6 text-[#0A84FF] mb-2" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+            </div>
+            <div class="px-4 py-2 bg-white z-10 border-b border-gray-100 shadow-sm">
+                <div class="bg-gray-100 rounded-[10px] flex items-center px-3 py-1.5">
+                    <svg class="w-4 h-4 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" placeholder="Search"
+                        class="bg-transparent flex-1 outline-none text-[15px] text-black">
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto pb-20 px-4" id="contacts-list-container">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- APP: E-Library -->
+        <div id="screen-elibrary" class="app-screen absolute inset-0 flex-col bg-white overflow-hidden">
+            <div
+                class="absolute top-0 w-full px-4 pt-14 pb-3 bg-[#1C3A5A] z-20 shadow-sm pointer-events-auto flex items-center justify-between">
+                <div class="text-white text-[19px] font-semibold tracking-tight">GNLU E-Library</div>
+                <svg class="w-5 h-5 text-white/80 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    onclick="openApp('home')">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </div>
+            <div class="flex-1 w-full h-full relative z-10 pt-[5rem] bg-[#f8f9fa] overflow-hidden">
+                <iframe src="https://gnlu.refread.com/#/home" class="w-full h-full border-none"
+                    style="width: 10px; min-width: 100%;"></iframe>
+            </div>
+        </div>
+
+        <!-- APP: Tips -->
+        <div id="screen-tips" class="app-screen absolute inset-0 flex-col bg-[#F2F2F7]">
+            <div class="flex-none pt-12 pb-4 px-6 bg-white/80 backdrop-blur-md border-b border-gray-200">
+                <h1 class="text-[34px] font-bold text-black tracking-tight">Tips</h1>
+            </div>
+            <div class="flex-1 overflow-y-auto px-4 py-6 space-y-6 hide-scrollbar pb-24">
+                <!-- Step 1: WhatsApp -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4">
+                    <div class="w-14 h-14 bg-[#25D366] rounded-2xl flex items-center justify-center mb-1 shadow-sm">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.969-1.39A9.957 9.957 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[12px] font-bold text-[#0A84FF] tracking-widest uppercase mb-1">Step 1</span>
+                        <h3 class="text-[22px] font-bold text-black leading-tight">The Brief</h3>
+                    </div>
+                    <p class="text-[15px] text-gray-600 leading-relaxed">
+                        Start each level by checking <strong>WhatsApp</strong>. Your juniors will message you urgently needing facts about legal cases. The level dictates how many facts they need.
+                    </p>
+                    <div class="mt-2 bg-[#F2F2F7] rounded-xl p-4 border border-gray-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-300 overflow-hidden flex-shrink-0">
+                                <img src="profile_pics/Kuhu.png" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 bg-white p-3 rounded-2xl rounded-tl-none shadow-sm">
+                                <p class="text-[13px] text-black">Do you remember where the ICJ is located?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Google App -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4">
+                    <div class="relative w-14 h-14 mb-1">
+                        <div class="absolute inset-0 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden flex items-center justify-center">
+                            <svg class="w-8 h-8" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[12px] font-bold text-[#0A84FF] tracking-widest uppercase mb-1">Step 2</span>
+                        <h3 class="text-[22px] font-bold text-black leading-tight">The Research</h3>
+                    </div>
+                    <p class="text-[15px] text-gray-600 leading-relaxed">
+                        Open the <strong>Google App</strong> or the Search Bar and use it to search for terms related to their question. Try finding specific legal keywords.
+                    </p>
+                    <div class="mt-2 bg-[#f1f3f4] rounded-full p-3 px-4 flex items-center gap-3 border border-gray-200 shadow-inner">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                        <span class="text-[14px] text-gray-800 font-medium">search query...</span>
+                    </div>
+                </div>
+
+                <!-- Step 3: Dino -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4">
+                    <div class="w-14 h-14 bg-[#202124] rounded-2xl flex items-center justify-center mb-1 shadow-sm overflow-hidden">
+                        <div style="width: 44px; height: 47px; background: url('dino_sprite.png') -848px -2px; display: inline-block; transform: scale(0.85); transform-origin: center;"></div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[12px] font-bold text-[#0A84FF] tracking-widest uppercase mb-1">Step 3</span>
+                        <h3 class="text-[22px] font-bold text-black leading-tight">The Hunt</h3>
+                    </div>
+                    <p class="text-[15px] text-gray-600 leading-relaxed">
+                        When you search the right term, the <strong>Search Screen</strong> will crash into the <strong>Dino game</strong>! Play the runner mini-game to physically jump and catch the legal facts scrolling by. 
+                    </p>
+                    <div class="mt-2 h-[80px] bg-[#f7f7f7] rounded-xl border border-gray-300 relative overflow-hidden flex items-end pb-3 px-4 shadow-inner">
+                        <div class="w-full border-b-[2px] border-dashed border-gray-400"></div>
+                        <div class="absolute bottom-[20px] left-[20px]" style="width: 44px; height: 47px; background: url('dino_sprite.png') -848px -2px; display: inline-block; transform: scale(0.65); transform-origin: bottom left;"></div>
+                        <div class="absolute bottom-[20px] right-[40px] px-2 py-1 bg-white border border-gray-300 rounded shadow-sm text-[10px] font-bold text-[#0A84FF] animate-pulse">FACT 1</div>
+                    </div>
+                </div>
+
+                <!-- Step 4: WiFi -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4">
+                    <div class="w-14 h-14 bg-[#0A84FF] rounded-2xl flex items-center justify-center mb-1 shadow-sm">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M4.93 9.07A10.001 10.001 0 0119.07 9.07m-11.31 2.83a6.001 6.001 0 018.48 0M12 16a1 1 0 100-2 1 1 0 000 2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[12px] font-bold text-[#0A84FF] tracking-widest uppercase mb-1">Step 4</span>
+                        <h3 class="text-[22px] font-bold text-black leading-tight">The Connection</h3>
+                    </div>
+                    <p class="text-[15px] text-gray-600 leading-relaxed">
+                        Once you have enough facts, connect to the <strong>GNLU WiFi portal</strong>. You will use the facts you gathered to answer a multiple-choice question. Answer correctly to level up!
+                    </p>
+                    <div class="mt-2 bg-[#F2F2F7] rounded-xl p-3 border border-gray-200">
+                        <div class="w-full text-center text-[12px] text-gray-500 font-medium mb-2 tracking-wide">GNLU-STUDENT</div>
+                        <div class="w-full bg-white rounded-lg p-2 text-center text-[#0A84FF] text-[13px] font-bold shadow-sm">Answer to Connect</div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Progression -->
+                <div class="bg-white rounded-[2rem] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-100 flex flex-col gap-4">
+                    <div class="w-14 h-14 bg-[#AF52DE] rounded-2xl flex items-center justify-center mb-1 shadow-sm">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[12px] font-bold text-[#0A84FF] tracking-widest uppercase mb-1">Step 5</span>
+                        <h3 class="text-[22px] font-bold text-black leading-tight">Progression</h3>
+                    </div>
+                    <p class="text-[15px] text-gray-600 leading-relaxed">
+                        There are <strong>3 Levels</strong> in total. Each level requires discovering more facts. If you successfully beat all 3 levels, you gain permanent unrestricted access to the entire phone simulator! Good luck.
+                    </p>
+                    <div class="flex gap-2.5 mt-2">
+                        <div class="flex-1 bg-[#F2F2F7] rounded-xl flex items-center justify-center py-2.5 shadow-inner">
+                            <span class="text-[12px] font-bold text-[#0A84FF]">Level 1</span>
+                        </div>
+                        <div class="flex-1 bg-[#F2F2F7] rounded-xl flex items-center justify-center py-2.5 shadow-inner">
+                            <span class="text-[12px] font-bold text-[#0A84FF]">Level 2</span>
+                        </div>
+                        <div class="flex-1 bg-[#F2F2F7] rounded-xl flex items-center justify-center py-2.5 shadow-inner">
+                            <span class="text-[12px] font-bold text-[#0A84FF]">Level 3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Go Back Button (visible during onboarding) -->
+                <div id="tips-go-back-btn" class="hidden">
+                    <button onclick="tipsGoBack()" class="w-full py-4 bg-[#0A84FF] text-white text-[17px] font-semibold rounded-2xl active:scale-95 transition-transform shadow-lg">
+                        Go back to Home Screen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- APP: Files -->
+        <div id="screen-files" class="app-screen absolute inset-0 flex-col bg-[#F2F2F7]">
+            <div class="flex-none pt-12 pb-4 px-6 bg-white/80 backdrop-blur-md border-b border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-[34px] font-bold text-black tracking-tight">Browse</h1>
+                    <button class="text-[#0A84FF] text-[17px] font-medium">Edit</button>
+                </div>
+                <!-- Search Bar -->
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" placeholder="Search" class="w-full h-9 bg-gray-200/60 rounded-xl pl-9 pr-4 text-[17px] focus:outline-none focus:bg-gray-200/80 transition-colors">
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-4 py-4 space-y-8 hide-scrollbar pb-24">
+                <!-- Section: Locations -->
+                <div>
+                    <h2 class="text-[22px] font-bold text-black mb-4 flex items-center gap-2">
+                        <span>Locations</span>
+                    </h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="flex items-center px-4 py-3 border-b border-gray-100 active:bg-gray-50 transition-colors cursor-pointer">
+                            <div class="w-8 h-8 rounded-lg bg-[#0A84FF] flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            </div>
+                            <span class="flex-1 text-[17px] text-black">On My iPhone</span>
+                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                        <div class="flex items-center px-4 py-3 active:bg-gray-50 transition-colors cursor-pointer">
+                            <div class="w-8 h-8 rounded-lg bg-[#5856D6] flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </div>
+                            <span class="flex-1 text-[17px] text-black">Recently Deleted</span>
+                            <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Recent Files (PDF Tiles) -->
+                <div>
+                    <h2 class="text-[22px] font-bold text-black mb-4">Recents</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- File 1 -->
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center active:scale-95 transition-transform cursor-pointer" onclick="openPDF('Public International Law Overview')">
+                            <div class="w-20 h-24 relative mb-3">
+                                <div class="absolute inset-0 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                                    <div class="h-6 bg-[#FF3B30] flex items-center justify-center">
+                                        <span class="text-[10px] text-white font-bold">PDF</span>
+                                    </div>
+                                    <div class="flex-1 p-2 space-y-1">
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                        <div class="h-1 bg-gray-100 w-3/4"></div>
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-[13px] font-medium text-black line-clamp-2">Public International Law Overview.pdf</span>
+                            <span class="text-[11px] text-gray-400 mt-1">Today, 2:15 PM - 1.2 MB</span>
+                        </div>
+                        <!-- File 2 -->
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center active:scale-95 transition-transform cursor-pointer" onclick="openPDF('Private International Law Cases')">
+                            <div class="w-20 h-24 relative mb-3">
+                                <div class="absolute inset-0 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                                    <div class="h-6 bg-[#FF3B30] flex items-center justify-center">
+                                        <span class="text-[10px] text-white font-bold">PDF</span>
+                                    </div>
+                                    <div class="flex-1 p-2 space-y-1">
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                        <div class="h-1 bg-gray-100 w-3/4"></div>
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-[13px] font-medium text-black line-clamp-2">Private International Law Cases.pdf</span>
+                            <span class="text-[11px] text-gray-400 mt-1">Yesterday, 4:32 PM - 845 KB</span>
+                        </div>
+                        <!-- File 3 -->
+                        <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center active:scale-95 transition-transform cursor-pointer" onclick="openPDF('UN Charter Summary')">
+                            <div class="w-20 h-24 relative mb-3">
+                                <div class="absolute inset-0 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                                    <div class="h-6 bg-[#FF3B30] flex items-center justify-center">
+                                        <span class="text-[10px] text-white font-bold">PDF</span>
+                                    </div>
+                                    <div class="flex-1 p-2 space-y-1">
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                        <div class="h-1 bg-gray-100 w-3/4"></div>
+                                        <div class="h-1 bg-gray-100 w-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-[13px] font-medium text-black line-clamp-2">UN Charter Summary.pdf</span>
+                            <span class="text-[11px] text-gray-400 mt-1">Oct 12, 2023 - 2.4 MB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Home Bar (iOS style) -->
+        <div class="absolute bottom-[25px] w-full flex justify-center z-[100] pointer-events-none bg-transparent">
+            <button onclick="goHome()" id="home-btn"
+                class="w-36 h-[5px] bg-[#E5E5E5] no-dark-override rounded-full active:scale-95 transition-all duration-300 shadow-[0_1px_3px_rgba(0,0,0,0.3)] pointer-events-auto"></button>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="data.js"></script>
+        <script src="js/state.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/wifi.js"></script>
+    <script src="js/browser.js"></script>
+    <script src="js/whatsapp.js"></script>
+    <script src="js/dino.js"></script>
+    <script src="js/apps.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            requestAnimationFrame(gameLoop);
+            init();
+        });
+    </script>
+</body>
+</html>

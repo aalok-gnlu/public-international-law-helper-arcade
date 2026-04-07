@@ -1,0 +1,452 @@
+[
+    {
+        "question_number": 1,
+        "question": "The two-element theory of CIL is derived from which Article of the ICJ Statute?",
+        "option_a": "Article 36",
+        "option_b": "Article 38",
+        "option_c": "Article 41",
+        "answer": "Option B",
+        "linked_fact_number": 1
+    },
+    {
+        "question_number": 2,
+        "question": "The Material/Objective Element of CIL requires state practice to be consistent and _____.",
+        "option_a": "Voluntary",
+        "option_b": "Widespread",
+        "option_c": "Occasional",
+        "answer": "Option B",
+        "linked_fact_number": 2
+    },
+    {
+        "question_number": 3,
+        "question": "Opinio Juris refers to the belief that a practice is followed because it is _____ obligatory.",
+        "option_a": "Morally",
+        "option_b": "Politically",
+        "option_c": "Legally",
+        "answer": "Option C",
+        "linked_fact_number": 3
+    },
+    {
+        "question_number": 4,
+        "question": "The phrase opinio juris sive necessitatis was first formulated by which jurist?",
+        "option_a": "Hugo Grotius",
+        "option_b": "François Gény",
+        "option_c": "Hersch Lauterpacht",
+        "answer": "Option B",
+        "linked_fact_number": 4
+    },
+    {
+        "question_number": 5,
+        "question": "Unlike treaties, customary international law binds _____ states.",
+        "option_a": "Only consenting",
+        "option_b": "Only powerful",
+        "option_c": "All",
+        "answer": "Option C",
+        "linked_fact_number": 5
+    },
+    {
+        "question_number": 6,
+        "question": "In the North Sea Continental Shelf Cases, Germany had not ratified which Convention?",
+        "option_a": "The 1945 UN Charter",
+        "option_b": "The 1958 Geneva Convention on the Continental Shelf",
+        "option_c": "The 1982 UNCLOS",
+        "answer": "Option B",
+        "linked_fact_number": 6
+    },
+    {
+        "question_number": 7,
+        "question": "According to the ICJ in the North Sea Continental Shelf Cases, for a treaty rule to become custom, states must follow it with what?",
+        "option_a": "Opinio Juris",
+        "option_b": "Diplomatic notes",
+        "option_c": "Domestic legislation",
+        "answer": "Option A",
+        "linked_fact_number": 7
+    },
+    {
+        "question_number": 8,
+        "question": "In the North Sea Continental Shelf Cases, the ICJ required delimitation to be based on _____ principles.",
+        "option_a": "Equidistance",
+        "option_b": "Equitable",
+        "option_c": "Reciprocal",
+        "answer": "Option B",
+        "linked_fact_number": 8
+    },
+    {
+        "question_number": 9,
+        "question": "The Paquete Habana and Lola were seized during which war?",
+        "option_a": "The American Civil War",
+        "option_b": "The Spanish-American War",
+        "option_c": "World War I",
+        "answer": "Option B",
+        "linked_fact_number": 9
+    },
+    {
+        "question_number": 10,
+        "question": "The Paquete Habana case is significant because it confirmed CIL applies in _____ courts.",
+        "option_a": "International",
+        "option_b": "Military",
+        "option_c": "Domestic",
+        "answer": "Option C",
+        "linked_fact_number": 10
+    },
+    {
+        "question_number": 11,
+        "question": "Article 38 of the ICJ Statute was copied from the statute of which body?",
+        "option_a": "The League of Nations",
+        "option_b": "The Permanent Court of International Justice (PCIJ)",
+        "option_c": "The United Nations General Assembly",
+        "answer": "Option B",
+        "linked_fact_number": 11
+    },
+    {
+        "question_number": 12,
+        "question": "The power under Article 38(2) to decide a case based on fairness is known as?",
+        "option_a": "Ex aequo et bono",
+        "option_b": "Pacta sunt servanda",
+        "option_c": "Jus cogens",
+        "answer": "Option A",
+        "linked_fact_number": 12
+    },
+    {
+        "question_number": 13,
+        "question": "Which of the following is NOT a general principle of law under Article 38(1)(c)?",
+        "option_a": "Good faith",
+        "option_b": "Estoppel",
+        "option_c": "Equidistance",
+        "answer": "Option C",
+        "linked_fact_number": 13
+    },
+    {
+        "question_number": 14,
+        "question": "Formal sources of international law define the _____ through which rules become legally binding.",
+        "option_a": "Reason",
+        "option_b": "Process",
+        "option_c": "History",
+        "answer": "Option B",
+        "linked_fact_number": 14
+    },
+    {
+        "question_number": 15,
+        "question": "According to Hans Kelsen, international law can be defined solely by the ways in which its _____ are created.",
+        "option_a": "States",
+        "option_b": "Courts",
+        "option_c": "Norms",
+        "answer": "Option C",
+        "linked_fact_number": 15
+    },
+    {
+        "question_number": 16,
+        "question": "Which Article of the Vienna Convention declares a treaty void if it conflicts with jus cogens?",
+        "option_a": "Article 38",
+        "option_b": "Article 53",
+        "option_c": "Article 64",
+        "answer": "Option B",
+        "linked_fact_number": 16
+    },
+    {
+        "question_number": 17,
+        "question": "Which of the following is a recognized example of jus cogens?",
+        "option_a": "The prohibition of double taxation",
+        "option_b": "The prohibition of genocide",
+        "option_c": "The right of innocent passage",
+        "answer": "Option B",
+        "linked_fact_number": 17
+    },
+    {
+        "question_number": 18,
+        "question": "A state can avoid being bound by an emerging custom if it consistently and persistently _____ it from the outset.",
+        "option_a": "Ratifies",
+        "option_b": "Objects",
+        "option_c": "Accepts",
+        "answer": "Option B",
+        "linked_fact_number": 18
+    },
+    {
+        "question_number": 19,
+        "question": "In the Norwegian Fisheries Case, the UK's acquiescence meant it forfeited the right to _____.",
+        "option_a": "Fish in Norwegian waters",
+        "option_b": "Object to the baselines",
+        "option_c": "Conclude a treaty",
+        "answer": "Option B",
+        "linked_fact_number": 19
+    },
+    {
+        "question_number": 20,
+        "question": "In Nicaragua v. USA, which UNGA Resolution was used as evidence of existing customary law?",
+        "option_a": "Resolution 1514",
+        "option_b": "Resolution 2625",
+        "option_c": "Resolution 3314",
+        "answer": "Option B",
+        "linked_fact_number": 20
+    },
+    {
+        "question_number": 21,
+        "question": "The principle of pacta tertiis nec nocent nec prosunt means a treaty cannot bind a _____ state without consent.",
+        "option_a": "Developing",
+        "option_b": "Neutral",
+        "option_c": "Third",
+        "answer": "Option C",
+        "linked_fact_number": 21
+    },
+    {
+        "question_number": 22,
+        "question": "Soft law instruments that are not formally binding can eventually harden into _____ law.",
+        "option_a": "Domestic",
+        "option_b": "Binding customary international",
+        "option_c": "Regional",
+        "answer": "Option B",
+        "linked_fact_number": 22
+    },
+    {
+        "question_number": 23,
+        "question": "An entity that possesses international legal personality is called a _____ of international law.",
+        "option_a": "Object",
+        "option_b": "Subject",
+        "option_c": "Party",
+        "answer": "Option B",
+        "linked_fact_number": 23
+    },
+    {
+        "question_number": 24,
+        "question": "The Reparations for Injuries Advisory Opinion (1949) confirmed that _____ can also be subjects of international law.",
+        "option_a": "Multinational corporations",
+        "option_b": "Non-governmental organisations",
+        "option_c": "International organisations",
+        "answer": "Option C",
+        "linked_fact_number": 24
+    },
+    {
+        "question_number": 25,
+        "question": "Under the Montevideo Convention 1933, which of the following is NOT a criterion for statehood?",
+        "option_a": "A permanent population",
+        "option_b": "Recognition by the UN",
+        "option_c": "An effective government",
+        "answer": "Option B",
+        "linked_fact_number": 25
+    },
+    {
+        "question_number": 26,
+        "question": "Who coined the term 'international law' in 1789?",
+        "option_a": "Hugo Grotius",
+        "option_b": "Jeremy Bentham",
+        "option_c": "John Austin",
+        "answer": "Option B",
+        "linked_fact_number": 26
+    },
+    {
+        "question_number": 27,
+        "question": "According to John Austin, international law is not true 'law' because there is no sovereign backed by a threat of sanction.",
+        "option_a": "It only applies during wartime",
+        "option_b": "There is no sovereign commanding it backed by sanction",
+        "option_c": "It has never been codified",
+        "answer": "Option B",
+        "linked_fact_number": 27
+    },
+    {
+        "question_number": 28,
+        "question": "Which principles established by the Peace of Westphalia remain the bedrock of international law today?",
+        "option_a": "State sovereignty and non-interference",
+        "option_b": "Universal human rights",
+        "option_c": "Democratic governance",
+        "answer": "Option A",
+        "linked_fact_number": 28
+    },
+    {
+        "question_number": 29,
+        "question": "Why did the League of Nations ultimately fail?",
+        "option_a": "The USA never joined and it could not prevent WWII",
+        "option_b": "It was dissolved by the Security Council in 1930",
+        "option_c": "It lacked any founding treaty",
+        "answer": "Option A",
+        "linked_fact_number": 29
+    },
+    {
+        "question_number": 30,
+        "question": "Which scholar observed that 'almost all nations observe almost all principles of international law almost all of the time'?",
+        "option_a": "Hans Kelsen",
+        "option_b": "Louis Henkin",
+        "option_c": "H.L.A. Hart",
+        "answer": "Option B",
+        "linked_fact_number": 30
+    },
+    {
+        "question_number": 31,
+        "question": "Which legal instrument states that a country cannot use its domestic law to justify a breach of international law?",
+        "option_a": "UN Charter",
+        "option_b": "Vienna Convention on the Law of Treaties",
+        "option_c": "Geneva Convention",
+        "answer": "Option B",
+        "linked_fact_number": 31
+    },
+    {
+        "question_number": 32,
+        "question": "According to dualist theory, international law becomes applicable domestically only when it is transformed into municipal law.",
+        "option_a": "Approved by courts",
+        "option_b": "Transformed into municipal law",
+        "option_c": "Recognized by custom",
+        "answer": "Option B",
+        "linked_fact_number": 32
+    },
+    {
+        "question_number": 33,
+        "question": "Who is most closely associated with the monist theory of law?",
+        "option_a": "Triepel",
+        "option_b": "Anzilotti",
+        "option_c": "Kelsen",
+        "answer": "Option C",
+        "linked_fact_number": 33
+    },
+    {
+        "question_number": 34,
+        "question": "In India, customary international law is applied when it does not conflict with domestic law.",
+        "option_a": "It is part of the Constitution",
+        "option_b": "It is ratified by Parliament",
+        "option_c": "It does not conflict with domestic law",
+        "answer": "Option C",
+        "linked_fact_number": 34
+    },
+    {
+        "question_number": 35,
+        "question": "Which Article of the Indian Constitution empowers Parliament to implement international treaties?",
+        "option_a": "Article 51",
+        "option_b": "Article 253",
+        "option_c": "Article 246",
+        "answer": "Option B",
+        "linked_fact_number": 35
+    },
+    {
+        "question_number": 36,
+        "question": "Which mode of acquiring territory refers to occupation of terra nullius?",
+        "option_a": "Occupation",
+        "option_b": "Cession",
+        "option_c": "Prescription",
+        "answer": "Option A",
+        "linked_fact_number": 36
+    },
+    {
+        "question_number": 37,
+        "question": "Which principle prohibits acquisition of territory by force under modern international law?",
+        "option_a": "Principle of Self-Determination",
+        "option_b": "UN Charter Principle",
+        "option_c": "Pacta Sunt Servanda",
+        "answer": "Option B",
+        "linked_fact_number": 37
+    },
+    {
+        "question_number": 38,
+        "question": "Which body is the principal judicial organ for resolving territorial disputes between states?",
+        "option_a": "International Criminal Court",
+        "option_b": "Permanent Court of Arbitration",
+        "option_c": "International Court of Justice",
+        "answer": "Option C",
+        "linked_fact_number": 38
+    },
+    {
+        "question_number": 39,
+        "question": "Which concept emphasizes continuous and peaceful display of authority over territory?",
+        "option_a": "Effective Control",
+        "option_b": "Uti Possidetis",
+        "option_c": "Occupation",
+        "answer": "Option A",
+        "linked_fact_number": 39
+    },
+    {
+        "question_number": 40,
+        "question": "Which convention deals with succession of states in respect of treaties?",
+        "option_a": "Geneva Convention",
+        "option_b": "Vienna Convention on Law of Treaties",
+        "option_c": "Vienna Convention on State Succession",
+        "answer": "Option C",
+        "linked_fact_number": 40
+    },
+    {
+        "question_number": 41,
+        "question": "Which type of jurisdiction refers to the authority of a state to make laws?",
+        "option_a": "Prescriptive jurisdiction",
+        "option_b": "Adjudicative jurisdiction",
+        "option_c": "Enforcement jurisdiction",
+        "answer": "Option A",
+        "linked_fact_number": 41
+    },
+    {
+        "question_number": 42,
+        "question": "Which type of territorial jurisdiction applies when the effect of an act is felt within a state?",
+        "option_a": "Subjective territorial jurisdiction",
+        "option_b": "Objective territorial jurisdiction",
+        "option_c": "Protective jurisdiction",
+        "answer": "Option B",
+        "linked_fact_number": 42
+    },
+    {
+        "question_number": 43,
+        "question": "Which principle allows a state to exercise jurisdiction over crimes committed against its nationals abroad?",
+        "option_a": "Nationality principle",
+        "option_b": "Passive personality principle",
+        "option_c": "Universality principle",
+        "answer": "Option B",
+        "linked_fact_number": 43
+    },
+    {
+        "question_number": 44,
+        "question": "Which concept distinguishes between sovereign and commercial acts for immunity purposes?",
+        "option_a": "Absolute immunity",
+        "option_b": "Restrictive immunity",
+        "option_c": "Diplomatic immunity",
+        "answer": "Option B",
+        "linked_fact_number": 44
+    },
+    {
+        "question_number": 45,
+        "question": "Which international instrument deals with jurisdictional immunities of states?",
+        "option_a": "Vienna Convention on Diplomatic Relations",
+        "option_b": "UN Charter",
+        "option_c": "UN Convention on Jurisdictional Immunities",
+        "answer": "Option C",
+        "linked_fact_number": 45
+    },
+    {
+        "question_number": 46,
+        "question": "Which Article of the UN Charter deals with peaceful settlement of disputes?",
+        "option_a": "Article 2(4)",
+        "option_b": "Article 33",
+        "option_c": "Article 51",
+        "answer": "Option B",
+        "linked_fact_number": 46
+    },
+    {
+        "question_number": 47,
+        "question": "Which method of dispute settlement results in a binding legal decision?",
+        "option_a": "Negotiation",
+        "option_b": "Mediation",
+        "option_c": "Arbitration",
+        "answer": "Option C",
+        "linked_fact_number": 47
+    },
+    {
+        "question_number": 48,
+        "question": "Which type of jurisdiction of the ICJ gives non-binding opinions?",
+        "option_a": "Contentious jurisdiction",
+        "option_b": "Advisory jurisdiction",
+        "option_c": "Compulsory jurisdiction",
+        "answer": "Option B",
+        "linked_fact_number": 48
+    },
+    {
+        "question_number": 49,
+        "question": "Which provision of the UN Charter prohibits the use of force by states?",
+        "option_a": "Article 51",
+        "option_b": "Article 33",
+        "option_c": "Article 2(4)",
+        "answer": "Option C",
+        "linked_fact_number": 49
+    },
+    {
+        "question_number": 50,
+        "question": "Which UN organ is primarily responsible for maintaining international peace and security?",
+        "option_a": "UN General Assembly",
+        "option_b": "International Court of Justice",
+        "option_c": "UN Security Council",
+        "answer": "Option C",
+        "linked_fact_number": 50
+    }
+]
