@@ -7,6 +7,15 @@
     <title>GNLU Law Game - iOS Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="icon" href="data:image/x-icon;base64,AAABAAEAAQEAAAEAIAAwAAAAFgAAACgAAAABAAAAAgAAAAEAIAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAnJycA">
+    <script>
+        // Suppress Tailwind Play CDN development warning
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+            originalWarn.apply(console, args);
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -2174,7 +2183,9 @@
             </div>
             <div class="flex-1 w-full h-full relative z-10 pt-[5rem] bg-[#f8f9fa] overflow-hidden">
                 <iframe src="https://gnlu.refread.com/#/home" class="w-full h-full border-none"
-                    style="width: 10px; min-width: 100%;"></iframe>
+                    style="width: 10px; min-width: 100%;"
+                    allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
         </div>
 
