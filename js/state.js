@@ -73,7 +73,8 @@ if (window.gameState && !window.gameState.analytics) {
             totalDeaths: 0,
             distractions: 0,
             milestoneFails: 0,
-            levelFailures: [0, 0, 0, 0, 0]
+            levelFailures: [0, 0, 0, 0, 0],
+            deaths: []
         },
         isUnlocked: false
     };
@@ -164,7 +165,8 @@ if (!gameState || !gameState.juniorsOrder || !gameState.hasHistory) {
                 totalDeaths: 0,
                 distractions: 0, // Deaths within 5s of fact spawn/collect
                 milestoneFails: 0, // Deaths within 20 points of milestone
-                levelFailures: [0, 0, 0, 0, 0] // per phase
+                levelFailures: [0, 0, 0, 0, 0], // per phase
+                deaths: []
             },
             isUnlocked: false
         },

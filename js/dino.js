@@ -184,11 +184,15 @@ function updateDino() {
 
                 // Safety: Ensure index exists
                 const phaseIdx = Math.min(phase, 4);
+                if (window.gameState.analytics.gaming.levelFailures[phaseIdx] === undefined) {
+                    window.gameState.analytics.gaming.levelFailures[phaseIdx] = 0;
+                }
                 window.gameState.analytics.gaming.levelFailures[phaseIdx]++;
 
                 if (isNearMilestone) window.gameState.analytics.gaming.milestoneFails++;
                 if (isDistracted) window.gameState.analytics.gaming.distractions++;
 
+                if (!window.gameState.analytics.gaming.deaths) window.gameState.analytics.gaming.deaths = [];
                 window.gameState.analytics.gaming.deaths.push({
                     level: phase,
                     score: Math.floor(g.score),
