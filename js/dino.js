@@ -47,7 +47,7 @@ function resetDino() {
     g.score = 0;
     g.speed = 5;
     g.frameCount = 0;
-    g.nextMilestone = (window.factsCollected + 1) * 50; 
+    g.nextMilestone = (window.factsCollected + 1) * 50;
     g.factBox = null;
 
     clearInterval(preWarningInterval);
@@ -180,12 +180,12 @@ function updateDino() {
                 const phase = window.gameState.currentLevel || 1;
 
                 window.gameState.analytics.gaming.totalDeaths++;
-                if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0,0,0,0,0];
-                
+                if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0, 0, 0, 0, 0];
+
                 // Safety: Ensure index exists
                 const phaseIdx = Math.min(phase, 4);
                 window.gameState.analytics.gaming.levelFailures[phaseIdx]++;
-                
+
                 if (isNearMilestone) window.gameState.analytics.gaming.milestoneFails++;
                 if (isDistracted) window.gameState.analytics.gaming.distractions++;
 
@@ -212,7 +212,7 @@ function updateDino() {
     // ATPS Pre-milestone warning (3 seconds before the box hits the dino)
     const scoreRemaining = g.nextMilestone - g.score;
     // Calculate how much score will pass while the box travels from x=360 to x=74 (hit point)
-    const travelDistance = 286; 
+    const travelDistance = 286;
     const scoreLead = (travelDistance / g.speed) * 0.15;
 
     if (scoreRemaining <= scoreLead + 10 && scoreRemaining > 0 && preWarningMilestone !== g.nextMilestone) {
