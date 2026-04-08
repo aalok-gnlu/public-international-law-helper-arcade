@@ -75,8 +75,10 @@ function dinoJump(e) {
         }
 
         // Slide facts out, No Internet text back in
-        els.dinoErrorText.classList.replace('-translate-x-[120%]', 'translate-x-0');
-        els.dinoErrorText.classList.replace('opacity-0', 'opacity-100');
+        if (window.els && window.els.dinoErrorText) {
+            window.els.dinoErrorText.classList.replace('-translate-x-[120%]', 'translate-x-0');
+            window.els.dinoErrorText.classList.replace('opacity-0', 'opacity-100');
+        }
 
         const factText = document.getElementById('dino-fact-text');
         factText.classList.replace('translate-x-0', 'translate-x-[120%]');
@@ -166,18 +168,24 @@ function updateDino() {
             g.dino.y + my < o.y + o.height && g.dino.y + g.dino.height - my > o.y) {
 
             dinoState = 'gameover';
-            els.dinoErrorText.style.opacity = '1';
+            if (window.els && window.els.dinoErrorText) {
+                window.els.dinoErrorText.style.opacity = '1';
+            }
 
             // --- Log for Analytics ---
             if (window.gameState && window.gameState.analytics) {
                 const scoreRemaining = g.nextMilestone - g.score;
                 const isNearMilestone = scoreRemaining <= 20;
                 const isDistracted = g.factBox && g.factBox.active;
-                const phase = window.gameState.currentLevel;
+                const phase = window.gameState.currentLevel || 1;
 
                 window.gameState.analytics.gaming.totalDeaths++;
-                if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0,0,0,0];
-                window.gameState.analytics.gaming.levelFailures[phase]++;
+                if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0,0,0,0,0];
+                
+                // Safety: Ensure index exists
+                const phaseIdx = Math.min(phase, 4);
+                window.gameState.analytics.gaming.levelFailures[phaseIdx]++;
+                
                 if (isNearMilestone) window.gameState.analytics.gaming.milestoneFails++;
                 if (isDistracted) window.gameState.analytics.gaming.distractions++;
 
@@ -247,8 +255,10 @@ function updateDino() {
             currentFactText = window.selectedFacts[factsCollected % window.selectedFacts.length].fact;
 
             // Trigger Slide Animation
-            els.dinoErrorText.classList.replace('translate-x-0', '-translate-x-[120%]');
-            els.dinoErrorText.classList.replace('opacity-100', 'opacity-0');
+            if (window.els && window.els.dinoErrorText) {
+                window.els.dinoErrorText.classList.replace('translate-x-0', '-translate-x-[120%]');
+                window.els.dinoErrorText.classList.replace('opacity-100', 'opacity-0');
+            }
 
             const factContent = document.getElementById('dino-fact-content');
             factContent.innerText = currentFactText;
@@ -276,13 +286,13 @@ function updateDino() {
                     hintEl.style.color = '#5f6368'; // Restore normal color
 
                     // Dismiss ATPS warning island if it's currently visible
-                    if (els.islandBaseSmall.classList.contains('active') && document.getElementById('island-content-small').innerHTML.includes('prevented')) {
+                    if (window.els && window.els.islandBaseSmall && window.els.islandBaseSmall.classList.contains('active') && document.getElementById('island-content-small').innerHTML.includes('prevented')) {
                         dismissIsland();
                     }
                 } else {
                     hintEl.innerText = "Touch Locked (" + factLockRemaining + "s)";
                     // Realtime update island tracker if the user has triggered the alert
-                    if (els.islandBaseSmall.classList.contains('active') && document.getElementById('island-content-small').innerHTML.includes('prevented')) {
+                    if (window.els && window.els.islandBaseSmall && window.els.islandBaseSmall.classList.contains('active') && document.getElementById('island-content-small').innerHTML.includes('prevented')) {
                         setSmallIsland(islandTemplates.touchBlockedWarning(factLockRemaining), '100px');
                     }
                 }

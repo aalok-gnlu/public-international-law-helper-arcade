@@ -73,7 +73,7 @@
                     totalDeaths: 0,
                     distractions: 0,
                     milestoneFails: 0,
-                    levelFailures: [0, 0, 0, 0]
+                    levelFailures: [0, 0, 0, 0, 0]
                 },
                 isUnlocked: false
             };
@@ -164,7 +164,7 @@
                         totalDeaths: 0,
                         distractions: 0, // Deaths within 5s of fact spawn/collect
                         milestoneFails: 0, // Deaths within 20 points of milestone
-                        levelFailures: [0, 0, 0, 0] // per phase
+                        levelFailures: [0, 0, 0, 0, 0] // per phase
                     },
                     isUnlocked: false
                 },
