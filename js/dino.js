@@ -179,6 +179,10 @@ function updateDino() {
                 const isDistracted = g.factBox && g.factBox.active;
                 const phase = window.gameState.currentLevel || 1;
 
+                if (!window.gameState.analytics.gaming) {
+                    window.gameState.analytics.gaming = { totalDeaths: 0, distractions: 0, milestoneFails: 0, levelFailures: [0, 0, 0, 0, 0], deaths: [] };
+                }
+                
                 window.gameState.analytics.gaming.totalDeaths++;
                 if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0, 0, 0, 0, 0];
 

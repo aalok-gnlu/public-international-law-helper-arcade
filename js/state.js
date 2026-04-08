@@ -63,21 +63,28 @@ const MISSIONS = [
 window.gameState = JSON.parse(localStorage.getItem('gnluGameState'));
 
 // Migration: Ensure analytics structure exists for existing users
-if (window.gameState && !window.gameState.analytics) {
-    window.gameState.analytics = {
-        academic: {
-            answers: [],
-            categoryStats: {}
-        },
-        gaming: {
-            totalDeaths: 0,
-            distractions: 0,
-            milestoneFails: 0,
-            levelFailures: [0, 0, 0, 0, 0],
-            deaths: []
-        },
-        isUnlocked: false
-    };
+if (window.gameState) {
+    if (!window.gameState.analytics) {
+        window.gameState.analytics = {
+            academic: { answers: [], categoryStats: {} },
+            gaming: { totalDeaths: 0, distractions: 0, milestoneFails: 0, levelFailures: [0, 0, 0, 0, 0], deaths: [] },
+            isUnlocked: false
+        };
+    } else {
+        // Partial migration check
+        if (!window.gameState.analytics.academic) window.gameState.analytics.academic = { answers: [], categoryStats: {} };
+        if (!window.gameState.analytics.gaming) {
+            window.gameState.analytics.gaming = { totalDeaths: 0, distractions: 0, milestoneFails: 0, levelFailures: [0, 0, 0, 0, 0], deaths: [] };
+        } else {
+            if (!window.gameState.analytics.gaming.levelFailures) window.gameState.analytics.gaming.levelFailures = [0, 0, 0, 0, 0];
+            if (!window.gameState.analytics.gaming.deaths) window.gameState.analytics.gaming.deaths = [];
+            // Ensure levelFailures has correct length
+            if (window.gameState.analytics.gaming.levelFailures.length < 5) {
+                while(window.gameState.analytics.gaming.levelFailures.length < 5) window.gameState.analytics.gaming.levelFailures.push(0);
+            }
+        }
+    }
+
     // If already completed, unlock analytics immediately
     if (localStorage.getItem('gamePhase') === 'completed' || window.gameState.currentLevel > 3) {
         window.gameState.analytics.isUnlocked = true;
