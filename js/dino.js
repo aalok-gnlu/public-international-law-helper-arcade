@@ -111,7 +111,7 @@ function dinoJump(e) {
                     openWifiPortal();
                 } else {
                     dinoState = 'playing';
-                    g.postFactGracePeriod = 180; // 3 second gap (at 60fps)
+                    g.postFactGracePeriod = 47; // ~7 score units (47 * 0.15 = 7.05)
                 }
             }
         }, 800); // slightly faster countdown pacing
@@ -140,13 +140,13 @@ function spawnObstacle() {
     const scoreRemaining = g.nextMilestone - g.score;
     const travelDistance = 286;
     const scoreLead = (travelDistance / g.speed) * 0.15;
-    const threeSecondScoreBuffer = 3 * 60 * 0.15; // ~27 score units
+    const scoreBuffer = 7; // User requested 7 points on either side
 
     // 1. Don't spawn if a fact box is active
     if (g.factBox && g.factBox.active) return;
     
-    // 2. Don't spawn if a fact is about to appear (3s buffer before visibility)
-    if (scoreRemaining < scoreLead + threeSecondScoreBuffer) return;
+    // 2. Don't spawn if a fact is about to appear or within requested buffer
+    if (scoreRemaining < Math.max(scoreLead, scoreBuffer)) return;
 
     // 3. Don't spawn if we are in the post-fact grace period
     if (g.postFactGracePeriod > 0) return;
