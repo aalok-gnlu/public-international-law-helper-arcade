@@ -28,7 +28,8 @@ const g = {
     score: 0,
     nextMilestone: 50, // Score target to spawn the next fact
     frameCount: 0,
-    factBox: null // Tracks the incoming collectible
+    factBox: null, // Tracks the incoming collectible
+    postFactGracePeriod: 0 // Frames to wait after a fact before spawning cacti
 };
 
 function startDinoGame() {
@@ -110,6 +111,7 @@ function dinoJump(e) {
                     openWifiPortal();
                 } else {
                     dinoState = 'playing';
+                    g.postFactGracePeriod = 180; // 3 second gap (at 60fps)
                 }
             }
         }, 800); // slightly faster countdown pacing
@@ -134,6 +136,21 @@ function spawnObstacle() {
     const minDistance = 200 + (g.speed * 15);
     const lastObs = g.obstacles[g.obstacles.length - 1];
 
+    // --- Fact Collection Spawning Guards ---
+    const scoreRemaining = g.nextMilestone - g.score;
+    const travelDistance = 286;
+    const scoreLead = (travelDistance / g.speed) * 0.15;
+    const threeSecondScoreBuffer = 3 * 60 * 0.15; // ~27 score units
+
+    // 1. Don't spawn if a fact box is active
+    if (g.factBox && g.factBox.active) return;
+    
+    // 2. Don't spawn if a fact is about to appear (3s buffer before visibility)
+    if (scoreRemaining < scoreLead + threeSecondScoreBuffer) return;
+
+    // 3. Don't spawn if we are in the post-fact grace period
+    if (g.postFactGracePeriod > 0) return;
+
     if (!lastObs || (360 - lastObs.x > minDistance)) {
         g.obstacles.push({ x: 360, y: g.groundY - height, width: actualWidth, height, isLarge, isCluster });
     }
@@ -151,6 +168,8 @@ function updateDino() {
 
     g.obstacles.forEach(o => o.x -= g.speed);
     g.clouds.forEach(c => c.x -= c.speed);
+
+    if (g.postFactGracePeriod > 0) g.postFactGracePeriod--;
 
     if (g.obstacles.length && g.obstacles[0].x + g.obstacles[0].width < 0) g.obstacles.shift();
     if (g.clouds.length && g.clouds[0].x + 50 < 0) g.clouds.shift();
